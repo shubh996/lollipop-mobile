@@ -110,10 +110,10 @@ const navigation = useNavigation();
               />
               
                 <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <Text style={{ color: isDarkColorScheme ? '#FFF' : '#444', fontFamily: 'UberMove-Bold', fontSize: Math.max(13, width * 0.03) }}>
+                  <Text style={{ color: isDarkColorScheme ? '#FFF' : '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>
                     {item?.name}
                   </Text>
-                  <Text style={{ color: '#64748b', marginTop: "0%", fontFamily: 'UberMove-M', fontSize: Math.max(10, width * 0.023), textAlign: 'left' }}>
+                  <Text style={{ color: '#64748b', marginTop: "0%", fontFamily: 'UberMove-M', fontSize: 10, textAlign: 'left' }}>
                     {timeAgo(item?.created_at)}
                   </Text>
                 </View>
@@ -139,7 +139,7 @@ const navigation = useNavigation();
                 
                 }}
               >
-                <Text style={{  fontFamily: 'UberMove-Bold', fontSize: Math.max(13, width * 0.034), textAlign: 'left' }}>
+                <Text style={{  fontFamily: 'UberMove-Bold', fontSize: 13, textAlign: 'left' }}>
                   {item?.tip}
                 </Text>
                 {/* Four outlined buttons at the bottom of the tip card */}

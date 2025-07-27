@@ -234,7 +234,7 @@ export default function MenuBar({ tip }) {
                     style={{ marginLeft: 6, padding: 2, opacity: query.trim() ? 1 : 0.5 }}
                     accessibilityLabel="Submit Query"
                   >
-                    <Ionicons name="send-sharp" size={query.trim() ? 20 : 0} color={colors.text} />
+                    <Ionicons name="send-sharp" size={20} color={colors.text} />
                   </TouchableOpacity>
                 </View>
 

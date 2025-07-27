@@ -1,4 +1,4 @@
-import { Pressable, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { MoonStar } from '~/lib/icons/MoonStar';
 import { Sun } from '~/lib/icons/Sun';
@@ -16,15 +16,23 @@ export function ThemeToggle() {
   return (
     <Pressable
       onPress={toggleColorScheme}
-      className='web:ring-offset-background web:transition-colors web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2 active:opacity-70'
+      style={{
+        borderWidth: 0.6,
+        borderColor: isDarkColorScheme ? '#999' : '#333',
+        borderRadius: 11,
+        padding: 12.2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 2,
+      }}
+      android_ripple={{ color: isDarkColorScheme ? '#333' : '#e0e0e0' }}
     >
-      <View className='flex-1 aspect-square pt-0.5 justify-center items-start web:px-5'>
-        {isDarkColorScheme ? (
-          <MoonStar className='text-foreground' size={23} strokeWidth={1.25} />
-        ) : (
-          <Sun className='text-foreground' size={24} strokeWidth={1.25} />
-        )}
-      </View>
+      {!isDarkColorScheme ? (
+        <MoonStar className='text-foreground' size={23} strokeWidth={1.25} />
+      ) : (
+        <Sun className='text-foreground' size={24} strokeWidth={1.25} />
+      )}
     </Pressable>
   );
 }

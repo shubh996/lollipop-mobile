@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import * as Updates from 'expo-updates';
-import { View, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Platform, Text, TextInput, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { useTheme } from '@react-navigation/native';
 import { supabase } from '~/lib/supabase';
 import FaceIcon from '../assets/icons/face.svg';
@@ -23,6 +23,7 @@ type TabNavigationState,
 } from '@react-navigation/native';
 import { withLayoutContext } from 'expo-router';
 import { useColorScheme } from '~/lib/useColorScheme';
+import { ThemeToggle } from '~/components/ThemeToggle';
 import { Button } from '~/components/ui/button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -393,8 +394,15 @@ useEffect(() => {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', backgroundColor: colors.background }}>
         <View style={{ width: '95%', padding: 24, backgroundColor: colors.card, borderRadius: 16 }}>
-          <Text style={{ fontSize: 22, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 18, textAlign: 'center' }}>Login</Text>
-
+      <View style={{marginBottom:20 ,marginTop: Platform.OS === 'ios' ? "-10.5%" : 20, flexDirection: 'row', justifyContent:"center", alignItems: 'center', height: 56, borderBottomWidth: 0, borderBottomColor: isDarkColorScheme ? '#232323' : '#e5e7eb', backgroundColor: colors.background, paddingHorizontal: 0 }}>
+        {/* <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 10, paddingVertical: 8, marginLeft: 2, marginRight: 2 }}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity> */}
+        <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginLeft: 2, marginTop: 2 , textAlign:"center"}}>Login</Text>
+      {/* <TouchableOpacity onPress={refreshLiveTips} style={{ paddingHorizontal: 10, paddingVertical: 8, marginLeft: 2, marginRight: 2 }}>
+            <Ionicons name="refresh" size={22} color={colors.text} />
+        </TouchableOpacity> */}
+      </View>
           <TextInput
             placeholder="Email"
             value={email}
@@ -450,7 +458,7 @@ useEffect(() => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Profile Section */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 32, paddingBottom: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 2, paddingBottom: 12 }}>
         <View style={{ flex: 1 }}>
           {editingName ? (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -570,8 +578,14 @@ useEffect(() => {
       </RBSheet>
 
 
-        <TouchableOpacity onPress={handleLogout} style={{ position:"absolute", bottom: 20, left: 0, right: 0, padding: 16, backgroundColor: isDarkColorScheme ? '#999' : colors.primary, borderRadius: 10, marginHorizontal: 20 }}>
-          <Text style={{  color: isDarkColorScheme ? '#18181b' : '#fff', fontFamily: 'UberMove-Bold', fontSize: 16, textAlign: 'center' }}>Logout</Text>
+
+        {/* Theme toggle button above logout */}
+        <TouchableOpacity onPress={() => {}} style={{ position: 'absolute', bottom: 80, left: 0, right: 0,  borderRadius: 10, marginHorizontal: 10, alignItems: 'center', justifyContent: 'center' }}>
+          <ThemeToggle />
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLogout} style={{ position: "absolute", bottom: 20, left: 0, right: 0, padding: 16, backgroundColor: isDarkColorScheme ? '#999' : colors.primary, borderRadius: 10, marginHorizontal: 10 }}>
+          <Text style={{ color: isDarkColorScheme ? '#18181b' : '#fff', fontFamily: 'UberMove-Bold', fontSize: 16, textAlign: 'center' }}>Logout</Text>
         </TouchableOpacity>
 
 

@@ -161,7 +161,7 @@ export default function Analysts() {
             <View style={{ flexDirection: 'row', gap: 5 }}>
               <Button
                 variant="default"
-                size="icon"
+             
                 onPress={() => handleSocial('tips')}
                 style={{
                   marginHorizontal: 2,
@@ -178,7 +178,7 @@ export default function Analysts() {
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                
                 onPress={() => handleSocial('twitter')}
                 style={{
                   marginHorizontal: 2,
@@ -196,7 +196,7 @@ export default function Analysts() {
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+              
                 onPress={() => handleSocial('twitter')}
                 style={{
                   marginHorizontal: 2,
@@ -214,7 +214,7 @@ export default function Analysts() {
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                
                 onPress={() => handleSocial('instagram')}
                 style={{
                   marginHorizontal: 2,
@@ -232,7 +232,7 @@ export default function Analysts() {
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+               
                 onPress={() => handleSocial('website')}
                 style={{
                   marginHorizontal: 2,
@@ -250,7 +250,7 @@ export default function Analysts() {
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+           
                 onPress={() =>
                   Alert.alert(
                     'Investment License',

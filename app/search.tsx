@@ -1,3 +1,4 @@
+import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useMemo, useRef } from 'react';
 import { Alert } from 'react-native';
 import { supabase } from '~/lib/supabase';
@@ -19,14 +20,6 @@ import {
 } from '@react-navigation/native';
 import { useColorScheme } from '~/lib/useColorScheme';
 
-const LIGHT_THEME: Theme = {
-  ...DefaultTheme,
-  colors: NAV_THEME.light,
-};
-const DARK_THEME: Theme = {
-  ...DarkTheme,
-  colors: NAV_THEME.dark,
-};
 
 
 // Import SVG icons
@@ -129,6 +122,33 @@ export default function SearchScreen() {
   const [loadingUnlock, setLoadingUnlock] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
+
+  // Always reload user data from Supabase when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true;
+      async function fetchUserData() {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user;
+        if (!sessionUser) return;
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, credits, unlockedTips')
+          .eq('id', sessionUser.id)
+          .single();
+        if (userData && isActive) {
+          setUserData(userData);
+          setWallet(userData.credits ?? 25);
+          setUnlockedTips(Array.isArray(userData.unlockedTips) ? userData.unlockedTips : []);
+          setUserId(userData.id);
+        }
+      }
+      fetchUserData();
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
 
 
@@ -343,7 +363,7 @@ export default function SearchScreen() {
           case 'defensive': iconName = 'shield-outline'; break;
         }
         return (
-          <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : item.color : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? item.color : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <Ionicons name={iconName} size={16} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text} style={{ marginRight: 4 }} />
             <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.name)}</Text>
           </View>
@@ -409,7 +429,7 @@ export default function SearchScreen() {
             {/* Info Bottom Sheet for paywalled tips */}
       <RBSheet
         ref={ResultSheetRef}
-        height={height * 0.4}
+        height={height * 0.48}
         openDuration={250}
         customStyles={{
           container: {
@@ -417,6 +437,9 @@ export default function SearchScreen() {
             borderTopLeftRadius: 22,
             borderTopRightRadius: 22,
             padding: 24,
+
+            
+
           },
         }}
         closeOnDragDown
@@ -426,20 +449,36 @@ export default function SearchScreen() {
         <View style={{ width: '100%', alignItems: 'center', marginTop: -10, marginBottom: 18 }}>
           <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: isDarkColorScheme ? '#333' : '#ccc', marginBottom: 2 }} />
         </View>
-        <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <LollipopIcon color={colors.primary} size={4} width={30} height={30} style={{ marginBottom: 32 }} />
-          <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 10, textAlign: 'center' }}>
-            What are Lollipops?
-          </Text>
-          <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.85, textAlign: 'justify', marginBottom: 18 }}>
-            Lollipops are investment tips that match your selected filters. Only tips older than 24 hours are free here. To see more details, tap on any tip.
-          </Text>
-
-                    <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.85, textAlign: 'left', marginBottom: 18 }}>
-            Tips less than 24 hours old are locked & require a Lollipop to unlock. You can earn Lollipops by engaging with the app or purchase them directly.
-          </Text>
+        
+        
+        
+          
+          <View style={{ width: '100%', flex:1,  flexDirection:"column",
+            justifyContent: 'space-between',
+            alignItems: 'center', marginBottom: 18 }}>
+            <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 18, color: colors.primary, marginBottom: 8, textAlign: 'center' }}>
+              How to use Lollipops to unlock tips
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
+              <MaterialIcons name="lock" size={32} color={colors.text} style={{ marginHorizontal: 6 }} />
+              <Ionicons name="arrow-forward" size={28} color={colors.text} style={{ marginHorizontal: 2 }} />
+              {isDarkColorScheme ? <LollipopIconWhite color={colors.primary} width={36} height={36} style={{ marginHorizontal: 6 }} /> : <LollipopIcon color={colors.primary} width={36} height={36} style={{ marginHorizontal: 6 }} />}
+              <Ionicons name="arrow-forward" size={28} color={colors.text} style={{ marginHorizontal: 2 }} />
+              <MaterialIcons name="lock-open" size={32} color={colors.primary} style={{ marginHorizontal: 6 }} />
+            </View>
+            <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 16, color: colors.text, opacity: 0.85, textAlign: 'center', marginBottom: 8 }}>
+              <Text style={{ color: colors.primary }}>Locked tips</Text> show a lollipop icon. Tap the unlock button and 1 lollipop will be used to reveal the tip instantly.
+            </Text>
+            <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.8, textAlign: 'center', marginBottom: 8 }}>
+              You can earn lollipops by engaging with the app or purchase them directly. Your available lollipops are shown in your wallet/profile.
+            </Text>
+            <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.8, textAlign: 'center', marginBottom: 8 }}>
+              Once unlocked, tips remain accessible in your account forever.
+            </Text>
+          </View>
+          
        
-        </View>
+
       </RBSheet>
       
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop:  5, marginBottom: 8, }}>
@@ -502,7 +541,7 @@ export default function SearchScreen() {
               style={{ margin: -2.5 }}
             >
               {/* Disclaimer at top */}
-              <View style={{ width: '100%', paddingBottom: 12.5, backgroundColor: isDarkColorScheme ? '#18181b' : '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 12, marginTop: 10, marginBottom: 10 }}>
+              <View style={{ width: '100%', paddingBottom: 12.5, backgroundColor: isDarkColorScheme ? '#18181b' : '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 12, marginTop: 10, marginBottom: 10, position: 'relative' }}>
                 <View style={{ paddingHorizontal: 10, paddingVertical: 7.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: isDarkColorScheme ? '#232323' : '#f3f3f3', borderBottomWidth: 1, borderBottomColor: colors.border, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
                   <TouchableOpacity
                     onPress={() => navigation.navigate('Profile', { name: tip?.name, avatar: tip?.avatar })}
@@ -523,6 +562,12 @@ export default function SearchScreen() {
                   <Text style={{ marginLeft: 6, color: '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>·</Text>
                   <Text style={{ marginLeft: 6, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 12 }}>{tip.sector}</Text>
                 </View>
+                {/* Show lollipop icon at right bottom if paywalled and not unlocked */}
+                {isPaywalled(tip) && !isUnlocked(tip) && userData && (
+                  <View style={{ position: 'absolute', right: 10, bottom: 10 }}>
+                    {isDarkColorScheme ? <LollipopIconWhite color={'#fff'} width={28} height={28} /> : <LollipopIcon color={colors.primary} width={28} height={28} />}
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           ))}
@@ -555,8 +600,14 @@ export default function SearchScreen() {
           </Text>
           <Button 
             size="lg" 
-            onPress={() => {setLoadingUnlock(true);  handleUnlockTip()}} 
-            
+            onPress={() => {
+              if (!userId) {
+                navigation.navigate('User');
+                return;
+              }
+              setLoadingUnlock(true);
+              handleUnlockTip();
+            }}
             style={{ 
               borderRadius: 7, 
               paddingHorizontal: 22, 
@@ -569,12 +620,11 @@ export default function SearchScreen() {
               justifyContent: 'center',
             }}
           >
-            
-           {!isDarkColorScheme ? (
-            <LollipopIconWhite color={'#fff'} width={21} height={21}  />
-          ) : (
-            <LollipopIcon color={colors.primary} width={21} height={21} />
-          )}
+            {!isDarkColorScheme ? (
+              <LollipopIconWhite color={'#fff'} width={21} height={21}  />
+            ) : (
+              <LollipopIcon color={colors.primary} width={21} height={21} />
+            )}
             <Text 
               style={{ 
                 color: isDarkColorScheme ? '#000' : '#FFF', 
@@ -716,7 +766,7 @@ export default function SearchScreen() {
     <SafeAreaView  style={{marginBottom:-50, flex: 1, backgroundColor: colors.background}}>
 
 
-  <GoLiveBar />
+  {/* <GoLiveBar /> */}
 
 
       { width > 900 

@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Image, Dimensions, Platform } from 'react-native';
-import { useTheme } from '@react-navigation/native';
+import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import SearchIcon from '../assets/icons/search.svg';
 import { mockNewsData, timeAgo } from './mockNewsData';
@@ -13,8 +13,8 @@ import LollipopIcon from '../assets/icons/lollipop.svg';
 import LollipopIconWhite  from "../assets/icons/lollipop-white.svg";
 
 export default function SearchSuggestionsScreen({ navigation, route }: any) {
-    const [wallet, setWallet] = useState<number>(route?.params?.wallet || 0);
-    const [userData, setUserData] = useState<any>(route?.params?.userData || {});
+    const [wallet, setWallet] = useState<number>(0);
+    const [userData, setUserData] = useState<any>({});
 
   const { colors } = useTheme();
   const { isDarkColorScheme, setColorScheme } = useColorScheme();
@@ -25,7 +25,27 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
   const [liveLoading, setLiveLoading] = useState(false);
   const [liveError, setLiveError] = useState<string | null>(null);
     const [unlockingTip, setUnlockingTip] = useState<any | null>(null);
-    const [unlockedTips, setUnlockedTips] = useState<any[]>((route?.params?.unlockedTips || []));
+    const [unlockedTips, setUnlockedTips] = useState<any[]>([]);
+    // Fetch latest user data from Supabase on mount and when fetchUserKey changes
+    React.useEffect(() => {
+      async function fetchUserData() {
+        // Get current session
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sessionUser = sessionData?.session?.user;
+        if (!sessionUser) return;
+        const { data: userData } = await supabase
+          .from('users')
+          .select('id, credits, unlockedTips')
+          .eq('id', sessionUser.id)
+          .single();
+        if (userData) {
+          setUserData(userData);
+          setWallet(userData.credits ?? 0);
+          setUnlockedTips(Array.isArray(userData.unlockedTips) ? userData.unlockedTips : []);
+        }
+      }
+      fetchUserData();
+    }, [route?.params?.fetchUserKey]);
     const userId = route?.params?.userId || null;
 
     console.log('SearchSuggestionsScreen params:', route.params);
@@ -110,6 +130,33 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
       return { label, sector: sectorLabel, data };
     });
   }, [search, liveTips]);
+
+
+  useFocusEffect(
+      React.useCallback(() => {
+        let isActive = true;
+        async function fetchUserData() {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const sessionUser = sessionData?.session?.user;
+          if (!sessionUser) return;
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, credits, unlockedTips')
+            .eq('id', sessionUser.id)
+            .single();
+          if (userData && isActive) {
+            setUserData(userData);
+            setWallet(userData.credits ?? 25);
+            setUnlockedTips(Array.isArray(userData.unlockedTips) ? userData.unlockedTips : []);
+            setUserId(userData.id);
+          }
+        }
+        fetchUserData();
+        return () => {
+          isActive = false;
+        };
+      }, [])
+    );
 
 
   const handleUnlockTip = async () => {
@@ -249,7 +296,7 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
   return (
     <SafeAreaView edges={['left', 'right', 'bottom', 'top']}  style={{ flex: 1,}}>
       {/* Pinned Search Bar at top of overlay */}
-      <View style={{ marginTop: Platform.OS === 'ios' ? "-9.5%" : 0,  zIndex: 51, padding: 12, paddingBottom: 0 }}>
+      <View style={{ marginTop:  0,  zIndex: 51, padding: 12, paddingBottom: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', borderColor: colors.border, borderWidth:1, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 12 }}>
           <SearchIcon width={23.5} height={23.5} fill={isDarkColorScheme ? '#888' : '#888'} style={{ marginRight: 7 }} />
           <TextInput
@@ -302,127 +349,64 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
                   timestamp = timeAgo ? timeAgo(item.created_at) : item.created_at;
                 }
                 return (
-                    <TouchableOpacity
-                                key={item?.id || idx}
-                                activeOpacity={0.92}
-                                onPress={() => {
-                                  navigation.navigate('TipCard', {
-                                    tip: item,
-                                    userData: { ...userData, unlockedTips: unlockedTips }, // <-- use current state
-                                    onUnlockedTipsUpdate: (tips: string[], newWallet?: number) => {
-                                      setUnlockedTips(tips);
-                                      if (typeof newWallet === 'number') setWallet(newWallet);
-                                      if (route?.params?.onUnlockedTipsUpdate) {
-                                        route.params.onUnlockedTipsUpdate(tips, newWallet);
-                                      }
-                                    }
-                                  });
-                                  // if (isPaywalled(item) && !isUnlocked(item)) {
-                                  //   setUnlockingTip(item);
-                                  //   unlockSheetRef.current?.open?.();
-                                  // } else {
-                                  //   navigation.navigate('TipCard', { tip: item });
-                                  // }
-                                }}
-                                style={{ margin: -2.5 }}
-                              >
-                                {/* Disclaimer at top */}
-                                <View style={{ width: '100%', paddingBottom: 12.5, backgroundColor: isDarkColorScheme ? '#18181b' : '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 12, marginTop: 10, marginBottom: 10 }}>
-                                  <View style={{ paddingHorizontal: 10, paddingVertical: 7.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: isDarkColorScheme ? '#232323' : '#f3f3f3', borderBottomWidth: 1, borderBottomColor: colors.border, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
-                                    <TouchableOpacity
-                                      onPress={() => navigation.navigate('Profile', { name: item?.name, avatar: item?.avatar })}
-                                      style={{ flexDirection: 'row', alignItems: 'center' }}
-                                    >
-                                      <Image source={{ uri: item?.avatar }} style={{ width: 25, height: 25, borderRadius: 14, marginRight: 8 }} />
-                                      <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 12, color: colors.text }}>{item?.name}</Text>
-                                    </TouchableOpacity>
-                                    <Text style={{ color: '#64748b', fontFamily: 'UberMove-Medium', fontSize: 12, minWidth: 80, textAlign: 'right' }}>{timeAgo ? timeAgo(item?.created_at) : item?.created_at}</Text>
-                                  </View>
-                                  <Text  numberOfLines={2} style={{ color: colors.text, fontFamily: 'UberMove-Medium', fontSize: 14, textAlign: 'left', opacity: 0.8, padding: 10 }}>
-                                    {item?.tip || 'No data available'}
-                                  </Text>
-                                  <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 1.5 }}>
-                                    <Text style={{ marginLeft: 0, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 11.25 }}>{item?.symbol}</Text>
-                                    <Text style={{ marginLeft: 6, color: '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>·</Text>
-                                    <Text style={{ marginLeft: 6, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 12 }}>{item?.asset_type}</Text>
-                                    <Text style={{ marginLeft: 6, color: '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>·</Text>
-                                    <Text style={{ marginLeft: 6, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 12 }}>{item?.sector}</Text>
-                                  </View>
-                                </View>
-                              </TouchableOpacity>
+                  <TouchableOpacity
+                    key={item?.id || idx}
+                    activeOpacity={0.92}
+                    onPress={() => {
+                      navigation.navigate('TipCard', {
+                        tip: item,
+                        userData: { ...userData, unlockedTips, credits: wallet },
+                        onUnlockedTipsUpdate: (tips: string[], newWallet?: number) => {
+                          setUnlockedTips(tips);
+                          if (typeof newWallet === 'number') setWallet(newWallet);
+                          if (route?.params?.onUnlockedTipsUpdate) {
+                            route.params.onUnlockedTipsUpdate(tips, newWallet);
+                          }
+                        }
+                      });
+                    }}
+                    style={{ margin: -2.5 }}
+                  >
+                    {/* Card content */}
+                    <View style={{ width: '100%', paddingBottom: 12.5, backgroundColor: isDarkColorScheme ? '#18181b' : '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 12, marginTop: 10, marginBottom: 10, position: 'relative' }}>
+                      <View style={{ paddingHorizontal: 10, paddingVertical: 7.5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: isDarkColorScheme ? '#232323' : '#f3f3f3', borderBottomWidth: 1, borderBottomColor: colors.border, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}>
+                        <TouchableOpacity
+                          onPress={() => navigation.navigate('Profile', { name: item?.name, avatar: item?.avatar })}
+                          style={{ flexDirection: 'row', alignItems: 'center' }}
+                        >
+                          <Image source={{ uri: item?.avatar }} style={{ width: 25, height: 25, borderRadius: 14, marginRight: 8 }} />
+                          <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 12, color: colors.text }}>{item?.name}</Text>
+                        </TouchableOpacity>
+                        <Text style={{ color: '#64748b', fontFamily: 'UberMove-Medium', fontSize: 12, minWidth: 80, textAlign: 'right' }}>{timeAgo ? timeAgo(item?.created_at) : item?.created_at}</Text>
+                      </View>
+                      <Text  numberOfLines={2} style={{ color: colors.text, fontFamily: 'UberMove-Medium', fontSize: 14, textAlign: 'left', opacity: 0.8, padding: 10 }}>
+                        {item?.tip || 'No data available'}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 1.5 }}>
+                        <Text style={{ marginLeft: 0, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 11.25 }}>{item?.symbol}</Text>
+                        <Text style={{ marginLeft: 6, color: '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>·</Text>
+                        <Text style={{ marginLeft: 6, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 12 }}>{item?.asset_type}</Text>
+                        <Text style={{ marginLeft: 6, color: '#444', fontFamily: 'UberMove-Bold', fontSize: 13 }}>·</Text>
+                        <Text style={{ marginLeft: 6, color: isDarkColorScheme ? '#999' : '#444', fontFamily: 'UberMove-Bold', fontSize: 12 }}>{item?.sector}</Text>
+                      </View>
+                      {/* Lollipop icon at right bottom for paywalled and not unlocked tips */}
+                      {isPaywalled(item) && !isUnlocked(item) && (
+                        <View style={{ position: 'absolute', right: 10, bottom: 10 }}>
+                          {isDarkColorScheme
+                            ? <LollipopIconWhite color={'#fff'} width={32} height={32} />
+                            : <LollipopIcon color={colors.primary} width={32} height={32} />
+                          }
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
           ))}
         </ScrollView>
       )}
-        <RBSheet
-        ref={unlockSheetRef}
-        height={height * 0.34}
-        openDuration={250}
-        customStyles={{
-          container: {
-            backgroundColor: isDarkColorScheme ? '#18181b' : '#fff',
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
-            padding: 24,
-          },
-        }}
-        closeOnDragDown
-        closeOnPressMask
-      >
-        {/* Closing line indicator */}
-        <View style={{ width: '100%', alignItems: 'center', marginTop: -10, marginBottom: 18 }}>
-          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: isDarkColorScheme ? '#333' : '#ccc', marginBottom: 2 }} />
-        </View>
-        <View style={{ alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
-          <MaterialIcons name="lock-outline" color={colors.primary} size={38} style={{ marginBottom: 12 }} />
-          <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 10, textAlign: 'center' }}>
-            Unlock this tip using 1 Lollipop?
-          </Text>
-          <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.85, textAlign: 'center', marginBottom: 18 }}>
-            Wallet Balance: {wallet} Lollipops
-          </Text>
-          <Button 
-            size="lg" 
-            onPress={handleUnlockTip} 
-            disabled={loadingUnlock} 
-            style={{ 
-              borderRadius: 7, 
-              paddingHorizontal: 22, 
-              paddingVertical: 12.5, 
-              marginTop: 8, 
-              backgroundColor: colors.primary, 
-              width: '100%' ,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            
-           {!isDarkColorScheme ? (
-            <LollipopIconWhite color={'#fff'} width={21} height={21}  />
-          ) : (
-            <LollipopIcon color={colors.primary} width={21} height={21} />
-          )}
-            <Text 
-              style={{ 
-                color: isDarkColorScheme ? '#000' : '#FFF', 
-                fontFamily: 'UberMove-Bold', 
-                fontSize: 17 , marginLeft:15
-              }}
-            >
-              {loadingUnlock ? 'Unlocking...' : 'Unlock'}
-            </Text>
-          </Button>
-   
-          {wallet === 0 && (
-            <Text style={{ color: '#f87171', fontFamily: 'UberMove-Bold', fontSize: 15, marginTop: 18, textAlign: 'center' }}>
-              You’ve run out of Lollipops. Earn more or upgrade your plan.
-            </Text>
-          )}
-        </View>
-      </RBSheet>
+      
     </SafeAreaView>
   );
 }

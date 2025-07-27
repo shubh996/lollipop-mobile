@@ -1,3 +1,15 @@
+// Profile stack for user and profile screens
+function ProfileStack() {
+  const { isDarkColorScheme } = useColorScheme();
+  return (
+    <Stack.Navigator initialRouteName="User" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="User" component={UserScreen} initialParams={{ filterType: '', filterName: '' }} />
+      <Stack.Screen name="TipListScreen" component={TipListScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ name: '', avatar: '', theme: isDarkColorScheme ? 'dark' : 'light' }} />
+
+      <Stack.Screen name="TipCard" component={TipCard} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ name: '', avatar: '', theme: isDarkColorScheme ? 'dark' : 'light' }} />
+    </Stack.Navigator>
+  );
+}
 import '~/global.css';
 
 import { DarkTheme, DefaultTheme, Theme, ThemeProvider } from '@react-navigation/native';
@@ -44,6 +56,7 @@ import StockScreen from './stocks';
 import SettingScreen from './settings';
 import SearchScreen from './search';
 import NotificationScreen from './NotificationScreen';
+import { Text } from 'react-native';
 import FilteredTipsScreen from './filteredTips';
 import Advisors from './analysts';
 import Analysts from './analysts';
@@ -58,8 +71,9 @@ import TipListScreen from './TipListScreen';
 const height = Dimensions.get('window').height;
 
 // ---- Stack and TopTabs setup ----
+
 const Stack = createStackNavigator();
-const { Navigator } = createMaterialTopTabNavigator();
+const Tab = createBottomTabNavigator();
 
 
 const LIGHT_THEME: Theme = {
@@ -86,49 +100,30 @@ function ModalIndicator() {
 
 
 
+
 // Home stack for home and filtered tips modal
 function HomeStack() {
   const { isDarkColorScheme } = useColorScheme();
   return (
     <Stack.Navigator initialRouteName="SearchScreen" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SearchScreen" 
-      component={SearchScreen} 
-      initialParams={{ userId:""  }}
-      
-      />
-      <Stack.Screen
-        name="TipCard"
-        component={props => <><ModalIndicator /><TipCard {...props} /></>}
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="SearchSuggestionsScreen"
-        component={props => <><ModalIndicator /><SearchSuggestionsScreen {...props} /></>}
-        options={{ presentation: 'modal' }}
-        initialParams={{ search: '' }}
-      />
-      <Stack.Screen
-        name="User"
-        component={props => <><ModalIndicator /><UserScreen {...props} /></>}
-        options={{ presentation: 'modal' }}
-        initialParams={{ filterType: '', filterName: '' }}
-      />
-      <Stack.Screen
-        name="NotificationScreen"
-        component={props => <><ModalIndicator /><NotificationScreen {...props} /></>}
-        options={{ presentation: 'modal' }}
-      />
-      <Stack.Screen
-        name="Profile"
-        component={props => <><ModalIndicator /><ProfileScreen {...props} /></>}
-        options={{ presentation: 'modal'  }}
-        initialParams={{ name: '', avatar: '', theme: isDarkColorScheme ? 'dark' : 'light' }}
-      />
-      <Stack.Screen
-        name="TipListScreen"
-        component={props => <><ModalIndicator /><TipListScreen {...props} /></>}
-        options={{ presentation: 'modal' }}
-      />
+      <Stack.Screen name="SearchScreen" component={SearchScreen} initialParams={{ userId: "" }} />
+      <Stack.Screen name="TipCard" component={TipCard} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} />
+      <Stack.Screen name="SearchSuggestionsScreen" component={SearchSuggestionsScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ search: '' }} />
+      <Stack.Screen name="NotificationScreen" component={NotificationScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} />
+      <Stack.Screen name="User" component={UserScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ filterType: '', filterName: '' }} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ name: '', avatar: '', theme: isDarkColorScheme ? 'dark' : 'light' }} />
+      <Stack.Screen name="TipListScreen" component={TipListScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} />
+    </Stack.Navigator>
+  );
+}
+
+// Search stack for search suggestions and tip card
+function SearchStack() {
+  const { isDarkColorScheme } = useColorScheme();
+  return (
+    <Stack.Navigator initialRouteName="SearchSuggestionsScreen" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SearchSuggestionsScreen" component={SearchSuggestionsScreen} initialParams={{ search: '' }} />
+      <Stack.Screen name="TipCard" component={TipCard} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} />
     </Stack.Navigator>
   );
 }
@@ -147,12 +142,59 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      
-        <HomeStack />
-       
-        <PortalHost />
-      
-      
+      <Tab.Navigator
+        screenOptions={({ route, navigation }) => {
+          // Get the current route state to check if a modal is active
+          const state = navigation.getState();
+          const currentRoute = state.routes[state.index];
+          const routeName = getFocusedRouteNameFromRoute(currentRoute);
+          
+          // Modal screens that should hide the tab bar
+          const modalScreens = ['TipCard',   'Profile', 'TipListScreen'];
+          const isModalActive = modalScreens.includes(routeName || '');
+
+          return {
+            headerShown: false,
+            tabBarIcon: ({ color, focused, size }) => {
+              const activeColor = isDarkColorScheme ? '#FFF' : '#000';
+              const inactiveColor = isDarkColorScheme ? '#888' : '#777';
+              const iconColor = focused ? activeColor : inactiveColor;
+              if (route.name === 'Home') {
+                return <MarketIcon width={size} height={size} fill={iconColor} />;
+              } else if (route.name === 'Search') {
+                return <SearchIcon width={size} height={size} fill={iconColor} />;
+              } else if (route.name === 'Bell') {
+                return <BellIcon width={size} height={size} fill={iconColor} />;
+              } else if (route.name === 'Settings') {
+                return <ProfileIcon width={size} height={size} fill={iconColor} />;
+              }
+              return null;
+            },
+            tabBarLabel: ({ color, focused }) => {
+              const activeColor = isDarkColorScheme ? '#FFF' : '#000';
+              const inactiveColor = isDarkColorScheme ? '#888' : '#777';
+              const labelColor = focused ? activeColor : inactiveColor;
+              return <Text style={{ fontSize: 11, color: labelColor, fontFamily: 'UberMove-Medium', marginBottom: 2 }}>{route.name}</Text>;
+            },
+            tabBarActiveTintColor: isDarkColorScheme ? '#FFF' : '#000',
+            tabBarInactiveTintColor: isDarkColorScheme ? '#888' : '#777',
+            tabBarStyle: isModalActive ? { display: 'none' } : {
+              backgroundColor: isDarkColorScheme ? NAV_THEME.dark.background : NAV_THEME.light.background,
+              borderTopColor: isDarkColorScheme ? NAV_THEME.dark.border : NAV_THEME.light.border,
+              height: height * 0.1,
+              paddingTop: 10,
+              borderTopWidth: 1,
+              marginHorizontal:-5
+            },
+          };
+        }}
+      >
+        <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: 'Tips' }} />
+        <Tab.Screen name="Search" component={SearchStack} options={{ tabBarLabel: 'Search' }} />
+        <Tab.Screen name="Bell" component={NotificationScreen} options={{ tabBarLabel: 'Alerts' }} />
+        <Tab.Screen name="Settings" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
+      </Tab.Navigator>
+      <PortalHost />
     </ThemeProvider>
   );
 }

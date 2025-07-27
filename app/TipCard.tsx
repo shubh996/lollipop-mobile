@@ -35,6 +35,7 @@ type Tip = {
   expected_return?: string;
   duration?: string;
   region?: string;
+  successRate?: string | number;
 };
 
 type TipCardProps = {
@@ -381,7 +382,7 @@ function FundamentalTabContent({ tip }: { tip: Tip }) {
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name={FIELD_ICONS[label] || 'help-circle'}
+              name={FIELD_ICONS[label] as any || 'help-circle'}
                   size={15}
                   color={isDarkColorScheme ? '#A9A9A9' : '#444'}
                   style={{ marginRight: 6 }}
@@ -436,7 +437,7 @@ function FundamentalTabContent({ tip }: { tip: Tip }) {
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name={FIELD_ICONS[label] || 'help-circle'}
+              name={FIELD_ICONS[label] as any || 'help-circle'}
                   size={15}
                   color={isDarkColorScheme ? '#A9A9A9' : '#444'}
                   style={{ marginRight: 6 }}
@@ -453,30 +454,10 @@ function FundamentalTabContent({ tip }: { tip: Tip }) {
           
 
 
-           <View style={{ marginHorizontal:-10, width: width, marginTop: width>900? "1%": Platform.OS === 'ios' ? "0.1%" : "2.5%",
+           <View style={{ marginBottom:-20, marginHorizontal:-10, width: width, marginTop: width>900? "1%": Platform.OS === 'ios' ? "0.1%" : "2.5%",
         flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', padding:20,
         paddingHorizontal: 30, borderTopWidth: 0.6, borderTopColor: colors.border }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{paddingBottom: 13 }}>
-          <Ionicons name="arrow-back-sharp" size={0} color={colors.text} />
-        </TouchableOpacity>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          {/* Bookmark Button */}
-          <TouchableOpacity
-            onPress={handleBookmark}
-            disabled={bookmarkLoading}
-            style={{ marginLeft: 8, marginBottom: 13 }}
-            accessibilityLabel={bookmarkFilled ? 'Bookmarked' : 'Bookmark'}
-            activeOpacity={0.7}
-          >
-            <Ionicons
-              name={bookmarkFilled ? 'bookmark-sharp' : 'bookmark-outline'}
-              size={22}
-              color={bookmarkFilled ? colors.primary : colors.text}
-            />
-          </TouchableOpacity>
-
-          {/* Share Button */}
+         {/* Share Button */}
           <TouchableOpacity
             onPress={async () => {
               try {
@@ -495,6 +476,24 @@ function FundamentalTabContent({ tip }: { tip: Tip }) {
           >
             <Ionicons name="share-social-outline" size={22} color={colors.text} />
           </TouchableOpacity>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* Bookmark Button */}
+          <TouchableOpacity
+            onPress={handleBookmark}
+            disabled={bookmarkLoading}
+            style={{ marginLeft: 8, marginBottom: 13 }}
+            accessibilityLabel={bookmarkFilled ? 'Bookmarked' : 'Bookmark'}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={bookmarkFilled ? 'bookmark-sharp' : 'bookmark-outline'}
+              size={22}
+              color={bookmarkFilled ? colors.primary : colors.text}
+            />
+          </TouchableOpacity>
+
+         
 
           {/* Report Button */}
           <TouchableOpacity
@@ -580,6 +579,7 @@ export default function TipCard() {
   const width = Dimensions.get('window').width;
   const isDarkColorScheme = useColorScheme ? useColorScheme().isDarkColorScheme : false;
   const { colors } = useTheme();
+  const navigation = useNavigation();
 
   console.log('[TipCard] Params with tip:', tip);
   console.log('[TipCard] Params with userData:', userData);
@@ -604,40 +604,153 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
 
   if (!tip) return null;
   return (
-    <SafeAreaView style={{marginBottom:0, marginTop: Platform.OS === 'ios' ? -15 : 0, flex: 1, minHeight: height, width: width, paddingBottom: 0, overflow: 'hidden' }}>
+    <SafeAreaView style={{marginBottom:0, marginTop: Platform.OS === 'ios' ? -40 : 0, flex: 1, minHeight: height, width: width, paddingBottom: 0, overflow: 'hidden' }}>
       
+      {/* Modal indicator for iOS */}
+      {Platform.OS === 'ios' && (
+        <View style={{ alignItems: 'center', zIndex: 999, marginBottom: 15 }}>
+          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, opacity: 0.6 }} />
+        </View>
+      )}
 
-      { isPaywalled(tip) && !userData?.unlockedTips?.includes(tip.id)
-        ? <View style={{ height: height * 0.8, flex: 1, justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: 30 }}>
-            {/* Info message */}
-            <Text style={{ color: colors.text, fontFamily: 'UberMove-Bold', fontSize: 18, textAlign: 'center', marginTop: -18 }}>
-              This tip is <Text style={{ color: colors.primary }}>locked</Text> because it was posted less than 24 hours ago.
-            </Text>
+      { isPaywalled(tip) && !userData?.unlockedTips?.includes(tip.id) ?
+  // Wireframe Unlock Screen
+  <ScrollView
+    contentContainerStyle={{ paddingHorizontal: 16, flexGrow: 1, justifyContent: 'space-between' }}
+    style={{ width: '100%' }}
+  >
+    {/* 1. Header */}
+    <View style={{ alignItems: 'center', marginVertical: 10 , gap: 10 }}>
+      <MaterialCommunityIcons name="lock-outline" size={30} color={colors.primary} />
+      <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginTop: 8, marginBottom: 4 }}>
+        Why is this tip locked?
+      </Text>
+      <Text style={{ fontSize: 15, fontFamily: 'UberMove-Medium', color: colors.text, opacity: 0.7, textAlign: 'center', marginBottom: 8 }}>
+        Tips are locked for 24 hours after posting to support our expert advisors and platform.
+      </Text>
+     
+      {/* 2. Tip Card Preview */}
+    <View style={{
+      width: '100%',
+      padding: 16,
+      backgroundColor: isDarkColorScheme ? '#333' : '#f0f0f0',
+      borderRadius: 12,
+      marginVertical: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: isDarkColorScheme ? '#000' : '#aaa',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 4,
+      elevation: 2,
+    }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent:"center", marginBottom: 8 }}>
+        <Image
+          source={{ uri: tip?.avatar }}
+          style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: isDarkColorScheme ? '#222' : '#e5e5e5' }}
+        />
+        <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 14, color: colors.text }}>{tip?.name}</Text>
+      </View>
 
-            {/* Locked icon and lollipops needed */}
-            <View style={{ alignItems: 'center', marginTop: -20, marginBottom: 10 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
-                {/* Show 1 lollipop needed visually */}
-                {isDarkColorScheme
-                  ? <LollipopIconWhite color={'#fff'} width={61} height={61} style={{ marginHorizontal: 2 }} />
-                  : <LollipopIcon color={colors.primary} width={60} height={60} style={{ marginHorizontal: 2 }} />
-                }
-                
-              </View>
-              <Text style={{ color: colors.text, fontFamily: 'UberMove-Bold', fontSize: 16, margin: 8 }}>
-                  1 lollipop needed to unlock
-                </Text>
-            </View>
-            {/* Wallet credits left */}
-            
-            {/* Unlock button */}
+            <View style={{ justifyContent:"center", flexDirection: 'row', marginTop: 5, gap: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          {/* SEBI Registered Icon */}
+          <ConfigurationIcon width={16} height={16} fill={isDarkColorScheme ? '#fff' : colors.primary} />
+          <Text style={{ fontSize: 12, color: isDarkColorScheme ? '#fff' : colors.text }}>SEBI Registered</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          {/* Success Rate Icon */}
+          <MaterialCommunityIcons name="chart-line" size={16} color={isDarkColorScheme ? '#fff' : colors.primary} />
+          <Text style={{ fontSize: 12, color: isDarkColorScheme ? '#fff' : colors.text }}>{tip?.successRate || '52%'} Success Rate</Text>
+        </View>
+      </View>
 
-            <View style={{ width: '120%', paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{height: 1, backgroundColor: colors.border, marginTop: 20}}></View>
+      
+      
+      <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 13, color: colors.text, opacity: 1, marginBottom: 8 , marginTop:20}}>{tip?.symbol || tip?.asset_type}</Text>
+      <Text numberOfLines={2} style={{ fontFamily: 'UberMove-Medium', fontSize: 12, color: colors.text, opacity: 0.7, marginBottom: 8 }}>
+        {tip?.tip}
+      </Text>
 
-            
-            <Button 
-              size="lg" 
-              onPress={async () => {
+
+            <View style={{height: 1, backgroundColor: colors.border, marginTop: 20}}></View>
+
+
+      {/* 3. Lollipop Breakdown */}
+    <View style={{ width: '100%', marginTop: 24 }}>
+      <Text style={{ fontSize: 16, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 22 }}>Unlock Cost Breakdown</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+        {isDarkColorScheme ? (
+          <LollipopIconWhite color={colors.primary} width={20} height={20} />
+        ) : (
+          <LollipopIcon color={colors.primary} width={20} height={20} />
+        )}
+        <Text style={{ marginLeft: 8, flex: 1, color: colors.text }}>Base unlock for all tips</Text>
+        <Text style={{ fontFamily: 'UberMove-Bold', color: colors.text }}>1</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+        {isDarkColorScheme ? (
+          <>
+            <LollipopIconWhite color={colors.primary} width={20} height={20} />
+            <LollipopIconWhite color={colors.primary} width={20} height={20} />
+          </>
+        ) : (
+          <>
+            <LollipopIcon color={colors.primary} width={20} height={20} />
+            <LollipopIcon color={colors.primary} width={20} height={20} />
+          </>
+        )}
+        <Text style={{ marginLeft: 8, flex: 1, color: colors.text }}>SEBI Registered Advisor</Text>
+        <Text style={{ fontFamily: 'UberMove-Bold', color: colors.text }}>2</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+        {isDarkColorScheme ? (
+          <>
+            <LollipopIconWhite color={colors.primary} width={20} height={20} />
+            <LollipopIconWhite color={colors.primary} width={20} height={20} />
+          </>
+        ) : (
+          <>
+            <LollipopIcon color={colors.primary} width={20} height={20} />
+            <LollipopIcon color={colors.primary} width={20} height={20} />
+          </>
+        )}
+        <Text style={{ marginLeft: 8, flex: 1, color: colors.text }}>High Win Rate</Text>
+        <Text style={{ fontFamily: 'UberMove-Bold', color: colors.text }}>2</Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 12 }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 12,
+          borderTopWidth: 1,
+          borderTopColor: colors.border,
+          paddingTop: 12,
+          paddingRight: 4,
+          width: '100%',
+        }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {isDarkColorScheme ? [...Array(5)].map((_, i) => <LollipopIconWhite key={i} color={colors.primary} width={20} height={20} />) : [...Array(5)].map((_, i) => (
+            <LollipopIcon key={i} color={colors.primary} width={20} height={20} />
+          ))}
+          </View>
+
+          <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 16, color: colors.text, marginLeft: 4 }}>5</Text>
+        </View>
+      </View>
+    </View>
+
+    </View>
+    </View>
+    
+    
+    {/* 4. CTA */}
+    <View style={{ width: '100%', alignItems: 'center', marginBottom: 5 }}>
+      <Button size="lg" style={{ width: '100%', backgroundColor: colors.primary }} 
+      
+      onPress={async () => {
                 if (credits <= 0) {
                   Alert.alert('Insufficient credits', 'You have no credits left to unlock tips.');
                   return;
@@ -669,44 +782,15 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
                 } finally {
                   setLoadingUnlock(false);
                 }
-              }} 
-              style={{ 
-                borderRadius: 7, 
-                paddingHorizontal: 22, 
-                paddingVertical: 12.5, 
-                marginTop: 8, 
-                backgroundColor: colors.primary, 
-                width: '100%' ,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
               }}
-            >
-              <MaterialCommunityIcons name="lock-open" size={22} color={colors.background} style={{}} />
-              <Text
-                style={{
-                  color: isDarkColorScheme ? '#000' : '#FFF',
-                  fontFamily: 'UberMove-Bold',
-                  fontSize: 17, marginLeft: 15
-                }}
-              >
-                { loadingUnlock ? 'Unlocking...' : 'Unlock'}
-              </Text>
-            </Button>
 
-
-<Text style={{ color: colors.text, fontFamily: 'UberMove-Bold', fontSize: 16, textAlign: 'center', marginBottom: 8 ,opacity: 0.8, marginTop: 20 }}>
-              Lollipops Left: <Text style={{ color: colors.primary }}>{credits}</Text>
-            </Text>
-
-
-            </View>
-
-
-
-
-          </View>
-        : <FundamentalTabContent tip={tip} />
+      >
+        <Text style={{ color: isDarkColorScheme ? '#000' : '#fff', fontFamily: 'UberMove-Bold', fontSize: 16 }}>{loadingUnlock ? 'Unlocking...' : 'Unlock Now'}</Text>
+      </Button>
+      <Text style={{ marginTop: 12, color: colors.text }}>You have {credits} Lollipops left</Text>
+    </View>
+  </ScrollView>
+: <FundamentalTabContent tip={tip} />
       }
       
 

@@ -350,10 +350,10 @@ export default function StockScreen() {
               />
               
                 <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <Text style={{marginRight:5, color: isDarkColorScheme ? '#A9A9A9' : '#444', fontFamily: 'UberMove-Bold', fontSize: Math.max(11, width * 0.0273) }}>
+                  <Text style={{marginRight:5, color: isDarkColorScheme ? '#A9A9A9' : '#444', fontFamily: 'UberMove-Bold', fontSize: 11 }}>
                     {item?.name}
                   </Text>
-                  <Text style={{ color: '#64748b', marginTop: "-10%", fontFamily: 'UberMove-M', fontSize: Math.max(10, width * 0.023), textAlign: 'left' }}>
+                  <Text style={{ color: '#64748b', marginTop: "-10%", fontFamily: 'UberMove-M', fontSize: 10, textAlign: 'left' }}>
                     {timeAgo(item?.created_at)}
                   </Text>
                 </View>
@@ -391,7 +391,7 @@ export default function StockScreen() {
                 <View style={{flexDirection: 'column', justifyContent: 'flex-end'}}>
 
                     
-                    <Text style={{  marginTop:20, fontFamily: 'UberMove-Bold', fontSize: Math.max(13, width * 0.034), textAlign: 'left' }}>
+                    <Text style={{  marginTop:20, fontFamily: 'UberMove-Bold', fontSize: 13 , textAlign: 'left' }}>
                       {item?.tip}
                     </Text>
 

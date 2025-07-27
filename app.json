@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "lollipop-mobile",
+    "name": "Lollipop",
     "slug": "lollipop-mobile",
     "version": "1.0.2",
     "orientation": "portrait",
@@ -9,9 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/appIcon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000"
     },
     "assetBundlePatterns": [
       "**/*"

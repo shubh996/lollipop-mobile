@@ -87,7 +87,7 @@ export default function NotificationScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
-      <View style={{marginTop: Platform.OS === 'ios' ? "-10.5%" : 0, flexDirection: 'row', justifyContent:"center", alignItems: 'center', height: 56, borderBottomWidth: 1, borderBottomColor: isDarkColorScheme ? '#232323' : '#e5e7eb', backgroundColor: colors.background, paddingHorizontal: 0 }}>
+      <View style={{marginTop: Platform.OS === 'ios' ? "-2.5%" : 0, flexDirection: 'row', justifyContent:"center", alignItems: 'center', height: 56, borderBottomWidth: 1, borderBottomColor: isDarkColorScheme ? '#232323' : '#e5e7eb', backgroundColor: colors.background, paddingHorizontal: 0 }}>
         {/* <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 10, paddingVertical: 8, marginLeft: 2, marginRight: 2 }}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity> */}
