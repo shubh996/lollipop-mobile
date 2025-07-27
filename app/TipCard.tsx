@@ -619,7 +619,7 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
                 {/* Show 1 lollipop needed visually */}
                 {isDarkColorScheme
-                  ? <LollipopIconWhite color={'#fff'} width={60} height={60} style={{ marginHorizontal: 2 }} />
+                  ? <LollipopIconWhite color={'#fff'} width={61} height={61} style={{ marginHorizontal: 2 }} />
                   : <LollipopIcon color={colors.primary} width={60} height={60} style={{ marginHorizontal: 2 }} />
                 }
                 
