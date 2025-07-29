@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lollipop",
     "slug": "lollipop-mobile",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/appIcon.png",
     "scheme": "myapp",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/appIcon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000"
+      "backgroundColor": "#000000"
     },
     "assetBundlePatterns": [
       "**/*"

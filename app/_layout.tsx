@@ -160,13 +160,13 @@ export default function RootLayout() {
               const inactiveColor = isDarkColorScheme ? '#888' : '#777';
               const iconColor = focused ? activeColor : inactiveColor;
               if (route.name === 'Home') {
-                return <MarketIcon width={size} height={size} fill={iconColor} />;
+                return <MarketIcon width={20} height={20} fill={iconColor} />;
               } else if (route.name === 'Search') {
-                return <SearchIcon width={size} height={size} fill={iconColor} />;
+                return <SearchIcon width={20} height={20} fill={iconColor} />;
               } else if (route.name === 'Bell') {
-                return <BellIcon width={size} height={size} fill={iconColor} />;
+                return <BellIcon width={20} height={20} fill={iconColor} />;
               } else if (route.name === 'Settings') {
-                return <ProfileIcon width={size} height={size} fill={iconColor} />;
+                return <ProfileIcon width={20} height={20} fill={iconColor} />;
               }
               return null;
             },
@@ -174,15 +174,15 @@ export default function RootLayout() {
               const activeColor = isDarkColorScheme ? '#FFF' : '#000';
               const inactiveColor = isDarkColorScheme ? '#888' : '#777';
               const labelColor = focused ? activeColor : inactiveColor;
-              return <Text style={{ fontSize: 11, color: labelColor, fontFamily: 'UberMove-Medium', marginBottom: 2 }}>{route.name}</Text>;
+              return <Text style={{ fontSize: 10, color: labelColor, fontFamily: 'UberMove-Medium', marginBottom: 2 }}>{route.name}</Text>;
             },
             tabBarActiveTintColor: isDarkColorScheme ? '#FFF' : '#000',
             tabBarInactiveTintColor: isDarkColorScheme ? '#888' : '#777',
             tabBarStyle: isModalActive ? { display: 'none' } : {
               backgroundColor: isDarkColorScheme ? NAV_THEME.dark.background : NAV_THEME.light.background,
               borderTopColor: isDarkColorScheme ? NAV_THEME.dark.border : NAV_THEME.light.border,
-              height: height * 0.1,
-              paddingTop: 10,
+              height: height * 0.09,
+              paddingTop: 5,
               borderTopWidth: 1,
               marginHorizontal:-5
             },

@@ -1,3 +1,4 @@
+import { colorScheme } from 'nativewind';
 import { Pressable, Text, View } from 'react-native';
 import { setAndroidNavigationBar } from '~/lib/android-navigation-bar';
 import { MoonStar } from '~/lib/icons/MoonStar';
@@ -17,8 +18,8 @@ export function ThemeToggle() {
     <Pressable
       onPress={toggleColorScheme}
       style={{
-        borderWidth: 0.6,
-        borderColor: isDarkColorScheme ? '#999' : '#333',
+        borderWidth: 1.4,
+        borderColor: isDarkColorScheme ? '#333' : '#e0e0e0',
         borderRadius: 11,
         padding: 12.2,
         alignItems: 'center',

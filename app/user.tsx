@@ -519,12 +519,12 @@ useEffect(() => {
           style={{ width:"20%", flex: 1, backgroundColor: colors.card, borderRadius: 14, marginRight: 0, padding: 16, alignItems: 'center', flexDirection: 'row' }}
           onPress={handleWalletPress}
         >
-            
-           {isDarkColorScheme ? (
+          {isDarkColorScheme ? (
             <LollipopIconWhite color={'#fff'} width={24} height={24}  />
           ) : (
             <LollipopIcon color={colors.primary} width={24} height={24} />
-          )}          <View style={{ marginLeft: 7 }}>
+          )}
+          <View style={{ marginLeft: 7 }}>
             <Text style={{ fontSize: 13, color: colors.text, opacity: 0.7 }}>Lollipops</Text>
             <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text }}>{credits}</Text>
           </View>

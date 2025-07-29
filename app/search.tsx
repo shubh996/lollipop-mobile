@@ -21,6 +21,14 @@ import {
 import { useColorScheme } from '~/lib/useColorScheme';
 
 
+import RiskIcon from '../assets/icons/risk.svg';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '~/components/ui/accordion';
+
 
 // Import SVG icons
 import DerivativesIcon from '../assets/icons/Derivatives.svg';
@@ -55,40 +63,41 @@ import RetailIcon from '../assets/icons/Consumer-staples.svg';
 export const MASTER_FILTERS = {
   assets: [
  { name: 'Equity', Icon: EquityIcon },
-    { name: 'Commodities', Icon: CommoditiesIcon },
+    
     { name: 'Forex', Icon: ForexIcon },
    
-    { name: 'Mutual Funds', Icon: MutualFundsIcon },
+    { name: 'ETF', Icon: MutualFundsIcon },
     { name: 'Crypto', Icon: BitcoinIcon },
-        { name: 'Derivatives', Icon: DerivativesIcon },
+        { name: 'F&O', Icon: DerivativesIcon },
     { name: 'Indexes', Icon: IndexesIcon },
     { name: 'Bonds', Icon: BondsIcon },
+    { name: 'Commodities', Icon: CommoditiesIcon },
   ],
   sectors: [
     { name: 'Technology', Icon: TechIcon },
-    { name: 'Financials', Icon: FinanceIcon },
+    { name: 'Finance', Icon: FinanceIcon },
     { name: 'Healthcare', Icon: HealthcareIcon },
     { name: 'Energy', Icon: EnergyIcon },
     { name: 'Retail', Icon: RetailIcon },
     { name: 'Industrials', Icon: IndustrialsIcon },
-    { name: 'Real Estate', Icon: RealEstateIcon },
+    { name: 'Estate', Icon: RealEstateIcon },
     { name: 'Infrastructure', Icon: InfrastructureIcon },
   ],
   sentiments: [
-    { name: 'Bullish', color: '#22c55e', Icon: FlashIcon },
-    { name: 'Bearish', color: '#f87171', Icon: FlashIcon },
-    { name: 'Neutral', color: '#EEE', Icon: FlashIcon },
-    { name: 'Volatile', color: '#fbbf24', Icon: FlashIcon },
-    { name: 'Momentum', color: '#6366f1', Icon: FlashIcon },
-    { name: 'Growth', color: '#0ea5e9', Icon: FlashIcon },
-    { name: 'Value', color: '#a855f7', Icon: FlashIcon },
-    { name: 'Income', color: '#eab308', Icon: FlashIcon },
-    { name: 'Defensive', color: '#ef4444', Icon: FlashIcon },
+    { name: 'Bullish', color: '#22c55e', Icon: "trending-up" },
+    { name: 'Bearish', color: '#f87171', Icon: "trending-down" },
+    { name: 'Neutral', color: '#EEE', Icon: "remove" },
+    { name: 'Volatile', color: '#fbbf24', Icon: "swap-horizontal" },
+    { name: 'Momentum', color: '#6366f1', Icon: "speedometer-outline" },
+    { name: 'Growth', color: '#0ea5e9', Icon: "leaf-outline" },
+    { name: 'Value', color: '#a855f7', Icon: "cash-outline" },
+    { name: 'Income', color: '#eab308', Icon: "wallet-outline" },
+    { name: 'Defensive', color: '#ef4444', Icon: "shield-outline" },
   ],
   risk: [
-    { name: 'Low', icon: 'dot-single' },
-    { name: 'Medium', icon: 'dots-two-vertical' },
-    { name: 'High', icon: 'dots-three-vertical' },
+    { name: 'Low', Icon: 'dot-single' },
+    { name: 'Medium', Icon: 'dots-two-vertical' },
+    { name: 'High', Icon: 'dots-three-vertical' },
   ],
   expectedReturn: [
     { label: '0-10%', min: 0, max: 10, icon: 'trending-up' },
@@ -252,6 +261,10 @@ export default function SearchScreen() {
   const riskTypes = MASTER_FILTERS.risk;
   const expectedReturnRanges = MASTER_FILTERS.expectedReturn;
 
+  // --- Filter Sheet State ---
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const filterSheetRef = useRef<any>(null);
  
 
   // --- Filtered tips based on selected filters and data mode ---
@@ -307,9 +320,10 @@ export default function SearchScreen() {
   };
 
   const renderFilterCarousel = (label: string, data: any[], selected: string[], onSelect: (v: string) => void, renderItem: (item: any, selected: boolean) => React.ReactNode) => (
-    <View style={{ marginBottom: 18, }}>
-      <Text style={{marginLeft:10, fontSize: 13, fontFamily: 'UberMove-Bold', color: isDarkColorScheme ? "#A9A9A9": colors.text, marginBottom: 10 }}>{label}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', gap: 8 }}>
+    <View style={{ marginVertical: 18, marginHorizontal:5}}>
+      
+      
+      <ScrollView  showsVerticalScrollIndicator={false} contentContainerStyle={{flexWrap: 'wrap', flexDirection: 'row',  gap: 8 }}>
         {data.map((item, idx) => {
           // For expected return, use item.label for selection, else item.name
           const value = item.label || item.name;
@@ -323,6 +337,7 @@ export default function SearchScreen() {
             >
               {renderItem(item, isSelected)}
             </TouchableOpacity>
+            
           );
         })}
       </ScrollView>
@@ -333,19 +348,27 @@ export default function SearchScreen() {
   const SearchAndFilter = () => (
     <View style={{ gap: 10, paddingHorizontal: 0, justifyContent: 'space-between', marginHorizontal:-10 }}>
       {renderFilterCarousel('Asset', assetTypes, selectedAsset, (v) => setSelectedAsset(selectedAsset.includes(v) ? selectedAsset.filter(x => x !== v) : [...selectedAsset, v]), (item, selected) => (
-        <View style={{  backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', }}>
+        <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+        <View style={{  backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), 
+        borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, 
+        padding: 12.5, flexDirection: 'row', alignItems: 'center', }}>
           {item.Icon ? (
-            <item.Icon width={18} height={18} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text} style={{ marginRight: 4 }} />
+            <item.Icon width={18} height={18} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
           ) : null}
-          <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.name)}</Text>
+        </View>
+        <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11 }}>{toCamelCase(item.name)}</Text>
         </View>
       ))}
       {renderFilterCarousel('Sector', sectorTypes, selectedSector, (v) => setSelectedSector(selectedSector.includes(v) ? selectedSector.filter(x => x !== v) : [...selectedSector, v]), (item, selected) => (
-        <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+        <View style={{  backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), 
+        borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, 
+        padding: 12.5, flexDirection: 'row', alignItems: 'center', }}>
           {item.Icon ? (
-            <item.Icon width={18} height={18} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text} style={{ marginRight: 4 }} />
+            <item.Icon width={18} height={18} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
           ) : null}
-          <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.name)}</Text>
+        </View>
+        <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11 }}>{toCamelCase(item.name)}</Text>
         </View>
       ))}
       {renderFilterCarousel('Sentiment', sentiments, selectedSentiment, (v) => setSelectedSentiment(selectedSentiment.includes(v) ? selectedSentiment.filter(x => x !== v) : [...selectedSentiment, v]), (item, selected) => {
@@ -363,10 +386,17 @@ export default function SearchScreen() {
           case 'defensive': iconName = 'shield-outline'; break;
         }
         return (
-        <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Ionicons name={iconName} size={16} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text} style={{ marginRight: 4 }} />
-            <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.name)}</Text>
-          </View>
+        
+
+          <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+        <View style={{  backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), 
+        borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, 
+        padding: 12.5, flexDirection: 'row', alignItems: 'center', }}>
+                      <Ionicons name={iconName} size={16} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}  />
+
+        </View>
+        <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11 }}>{toCamelCase(item.name)}</Text>
+        </View>
         );
       })}
       {renderFilterCarousel('Risk Involved', riskTypes, selectedRisk, (v) => setSelectedRisk(selectedRisk.includes(v) ? selectedRisk.filter(x => x !== v) : [...selectedRisk, v]), (item, selected) => {
@@ -376,24 +406,60 @@ export default function SearchScreen() {
         else if (riskName.includes('medium')) dotIcon = 'dots-two-vertical';
         else if (riskName.includes('high')) dotIcon = 'dots-three-vertical';
         return (
-          <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Entypo name={dotIcon} size={14} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text} style={{ marginRight: 4 }} />
-            <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.name)}</Text>
-          </View>
+         
+          <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+        <View style={{  backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), 
+        borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, 
+        padding: 12.5, flexDirection: 'row', alignItems: 'center', }}>
+            <Entypo name={dotIcon} size={14} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}  />
+
+        </View>
+        <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11 }}>{toCamelCase(item.name)}</Text>
+        </View>
+          
         );
       })}
       {renderFilterCarousel('Expected Return', expectedReturnRanges, selectedExpectedReturn, (v) => setSelectedExpectedReturn(selectedExpectedReturn.includes(v) ? selectedExpectedReturn.filter(x => x !== v) : [...selectedExpectedReturn, v]), (item, selected) => (
         <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 18, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text, fontFamily: 'UberMove-Bold', fontSize: 13 }}>{toCamelCase(item.label)}</Text>
+          <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11 }}>{toCamelCase(item.label)}</Text>
         </View>
       ))}
     </View>
   );
 
   const Results =() => (
-    <View style={{ marginTop: 0 }}>
+    <View style={{ marginTop: 5 }}>
+
+
+<View style={{
+  
+
+  
+  flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop:  0, marginBottom: 10, }}>
+          {selectedAsset.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedAsset(selectedAsset.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color:isDarkColorScheme ? "#000" : '#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+          {selectedSector.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedSector(selectedSector.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+          {selectedAnalyst.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedAnalyst(selectedAnalyst.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+          {selectedSentiment.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedSentiment(selectedSentiment.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+          {selectedRisk.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedRisk(selectedRisk.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+          {selectedExpectedReturn.map((val) => (
+            <TouchableOpacity key={val} onPress={() => setSelectedExpectedReturn(selectedExpectedReturn.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
+          ))}
+        </View>
+
+
+
       {/* Tips header and info button */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5, gap: 10 }}>
         <Text style={{ fontSize: 14, fontFamily: 'UberMove-Bold', color: colors.text }}>Tips</Text>
         <TouchableOpacity
           onPress={() => ResultSheetRef.current?.open?.()}
@@ -481,26 +547,7 @@ export default function SearchScreen() {
 
       </RBSheet>
       
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop:  5, marginBottom: 8, }}>
-          {selectedAsset.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedAsset(selectedAsset.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color:isDarkColorScheme ? "#000" : '#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-          {selectedSector.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedSector(selectedSector.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-          {selectedAnalyst.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedAnalyst(selectedAnalyst.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-          {selectedSentiment.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedSentiment(selectedSentiment.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-          {selectedRisk.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedRisk(selectedRisk.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-          {selectedExpectedReturn.map((val) => (
-            <TouchableOpacity key={val} onPress={() => setSelectedExpectedReturn(selectedExpectedReturn.filter(x => x !== val))} style={{ backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color: isDarkColorScheme ? "#000" :'#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
-          ))}
-        </View>
+        
           
       {dataMode === 'live' && liveLoading ? (
         <Text style={{ color: colors.text, opacity: 0.7, fontSize: 14, marginTop: 20 }}>Loading live tips...</Text>
@@ -768,10 +815,52 @@ export default function SearchScreen() {
 
   {/* <GoLiveBar /> */}
 
+    <View  style={{ 
+
+              position: 'absolute', top: height * 0.05, left: 0, right: 0, zIndex: 1000, paddingHorizontal: 12.5, paddingBottom: 12.5, paddingTop:6, backgroundColor: colors.background,
+              borderBottomWidth: 1, borderColor: colors.border,
+              
+              
+              flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',  gap: 10 }}>
+        {[
+          { label: 'Asset', icon: assetTypes[0]?.Icon },
+          { label: 'Sector', icon: sectorTypes[0]?.Icon },
+          { label: 'Sentiment', icon: assetTypes[7]?.Icon },
+          { label: 'Risk', icon: RiskIcon },
+          { label: 'Return', icon: assetTypes[2]?.Icon },
+        ].map((filter, idx) => (
+          <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4 }} key={idx} >
+          <TouchableOpacity
+            key={filter.label}
+            style={{
+              backgroundColor: colors.background,
+              borderRadius: 360,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: 17.5,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              
+            }}
+            activeOpacity={0.85}
+            onPress={() => {
+              setActiveFilter(filter.label);
+              setFilterSheetVisible(true);
+              filterSheetRef.current?.open?.();
+            }}
+          >
+            {filter.icon ? <filter.icon width={18} height={18} fill={colors.text} /> : null}
+          </TouchableOpacity>
+          <Text style={{ color: isDarkColorScheme ? '#fff' : '#000', fontFamily: 'UberMove-Regular', fontSize: 11.3 }}>{filter.label}</Text>
+        </View>
+        ))}
+      </View>
+
 
       { width > 900 
         ? (
-          <View style={{ flex: 1, padding: 8, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <View style={{ flex: 1, padding: 12.5, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
             
             
             <View style={{ flex: 1, padding: 18 }}>
@@ -786,18 +875,160 @@ export default function SearchScreen() {
             <ScrollView showsVerticalScrollIndicator={false}  style={{ flex: 1.5, padding: 18   }} contentContainerStyle={{ padding: 4, paddingTop: -10, gap: 10 }}>
               <Results />
             </ScrollView>
-
-
           </View>
         )
         : (
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 8 }} contentContainerStyle={{ padding: 4, paddingTop: 10, gap: 10 }}>
-            <SearchAndFilter />
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 8 }} contentContainerStyle={{ padding: 4, paddingTop: height * 0.1, gap: 10 }}>
+            
+           
+
+      
+            
+            {/* <SearchAndFilter /> */}
             <Results />
             <View style={{ height: 20 }}></View>
           </ScrollView>
         )
       }
+
+      {/* Filter Sheet (RBSheet) */}
+      <RBSheet
+        ref={filterSheetRef}
+        height={height * 0.7}
+        openDuration={250}
+        customStyles={{
+          container: {
+            backgroundColor: isDarkColorScheme ? '#18181b' : '#fff',
+            borderTopLeftRadius: 22,
+            borderTopRightRadius: 22,
+            padding: 4,
+            
+          },
+        }}
+        closeOnPressMask
+      >
+        <View style={{ width: '100%', alignItems: 'center', marginTop: 10, marginBottom: 18 }}>
+          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginBottom: 2 }} />
+        </View>
+        <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 18, color: colors.primary, marginBottom: 18, textAlign: 'center' }}>
+          Filters
+        </Text>
+        <ScrollView showsVerticalScrollIndicator={false} style={{ width: '104%', marginLeft:"-2%" }}>
+          {/* Accordion for all filter categories */}
+          <Accordion type="single" collapsible value={activeFilter || undefined} onValueChange={setActiveFilter}>
+            <AccordionItem style={{paddingVertical: 10 }} value="Asset">
+               <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Asset</Text>
+                  </View>
+                </AccordionTrigger>
+              <AccordionContent>
+                {renderFilterCarousel('Asset', assetTypes, selectedAsset, (v) => setSelectedAsset(selectedAsset.includes(v) ? selectedAsset.filter(x => x !== v) : [...selectedAsset, v]), (item, selected) => (
+                  <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+                    <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, padding: 17.5, flexDirection: 'row', alignItems: 'center' }}>
+                      {item.Icon ? (
+                        <item.Icon width={20} height={20} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
+                      ) : null}
+                    </View>
+                    <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11, marginBottom: 20 }}>{toCamelCase(item.name)}</Text>
+                  </View>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem style={{paddingVertical: 10 }} value="Sector">
+                <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Sector</Text>
+                  </View>
+                </AccordionTrigger>
+              <AccordionContent>
+                {renderFilterCarousel('Sector', sectorTypes, selectedSector, (v) => setSelectedSector(selectedSector.includes(v) ? selectedSector.filter(x => x !== v) : [...selectedSector, v]), (item, selected) => (
+                  <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+                    <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, padding: 17.5, flexDirection: 'row', alignItems: 'center' }}>
+                      {item.Icon ? (
+                        <item.Icon width={20} height={20} fill={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
+                      ) : null}
+                    </View>
+                    <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11, marginBottom: 20 }}>{toCamelCase(item.name)}</Text>
+                  </View>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem style={{paddingVertical: 10 }} value="Sentiment">
+              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Sentiment</Text>
+                  </View>
+                </AccordionTrigger>
+              <AccordionContent>
+                {renderFilterCarousel('Sentiment', sentiments, selectedSentiment, (v) => setSelectedSentiment(selectedSentiment.includes(v) ? selectedSentiment.filter(x => x !== v) : [...selectedSentiment, v]), (item, selected) => {
+                  let iconName = 'flash';
+                  switch (item.name.toLowerCase()) {
+                    case 'bullish': iconName = 'trending-up'; break;
+                    case 'bearish': iconName = 'trending-down'; break;
+                    case 'neutral': iconName = 'remove'; break;
+                    case 'volatile': iconName = 'swap-horizontal'; break;
+                    case 'momentum': iconName = 'speedometer-outline'; break;
+                    case 'growth': iconName = 'leaf-outline'; break;
+                    case 'value': iconName = 'cash-outline'; break;
+                    case 'income': iconName = 'wallet-outline'; break;
+                    case 'defensive': iconName = 'shield-outline'; break;
+                  }
+                  return (
+                    <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+                      <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, padding: 17.5, flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name={iconName} size={20} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
+                      </View>
+                      <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11, marginBottom: 20 }}>{toCamelCase(item.name)}</Text>
+                    </View>
+                  );
+                })}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem style={{paddingVertical: 10 }} value="Risk">
+             <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Risk</Text>
+                  </View>
+                </AccordionTrigger>
+              <AccordionContent>
+                {renderFilterCarousel('Risk', riskTypes, selectedRisk, (v) => setSelectedRisk(selectedRisk.includes(v) ? selectedRisk.filter(x => x !== v) : [...selectedRisk, v]), (item, selected) => {
+                  let dotIcon = 'dot-single';
+                  const riskName = (item.name || '').toLowerCase();
+                  if (riskName.includes('low')) dotIcon = 'dot-single';
+                  else if (riskName.includes('medium')) dotIcon = 'dots-two-vertical';
+                  else if (riskName.includes('high')) dotIcon = 'dots-three-vertical';
+                  return (
+                    <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 10 }}>
+                      <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, padding: 17.5, flexDirection: 'row', alignItems: 'center' }}>
+                        <Entypo name={dotIcon} size={20} color={selected ? (isDarkColorScheme ? '#000' : '#fff') : colors.text}/>
+                      </View>
+                      <Text style={{ color: selected ? (isDarkColorScheme ? '#fff' : '#000') : colors.text, fontFamily: 'UberMove-Regular', fontSize: 11, marginBottom: 20 }}>{toCamelCase(item.name)}</Text>
+                    </View>
+                  );
+                })}
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem style={{paddingVertical: 10 }} value="Return">
+              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Expected Return</Text>
+                  </View>
+                </AccordionTrigger>
+              <AccordionContent>
+                {renderFilterCarousel('Expected Return', expectedReturnRanges, selectedExpectedReturn, (v) => setSelectedExpectedReturn(selectedExpectedReturn.includes(v) ? selectedExpectedReturn.filter(x => x !== v) : [...selectedExpectedReturn, v]), (item, selected) => (
+                  <View style={{ flexDirection: 'column', alignItems: 'center', gap: 4, marginRight: 0, marginBottom: 10 }}>
+                    <View style={{ backgroundColor: selected ? isDarkColorScheme ? '#EEE' : colors.primary : (isDarkColorScheme ? '#18181b' : '#fff'), borderRadius: 260, borderWidth: 1, borderColor: selected ? colors.primary : colors.border, padding: 17.5, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={{ color: selected ? (isDarkColorScheme ? '#000' : '#FFF') : colors.text, fontFamily: 'UberMove-Medium', fontSize: 12.5 }}>{item.label}</Text>
+                    </View>
+                  </View>
+                ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+          <View style={{ height: 40} }></View>
+        </ScrollView>
+      </RBSheet>
 
 
 
