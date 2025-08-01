@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Image, Dimensions, Platform } from 'react-native';
+import { View, Text,ActivityIndicator, ScrollView, TouchableOpacity, TextInput, Image, Dimensions, Platform } from 'react-native';
 import { useFocusEffect, useTheme } from '@react-navigation/native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import SearchIcon from '../assets/icons/search.svg';
@@ -293,6 +293,12 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
 
 
 
+  // --- Lazy loading for suggestions ---
+  const [visibleCount, setVisibleCount] = useState(10);
+  React.useEffect(() => {
+    setVisibleCount(10);
+  }, [search, suggestions.length]);
+
   return (
     <SafeAreaView edges={['left', 'right', 'bottom', 'top']}  style={{ flex: 1,}}>
       {/* Pinned Search Bar at top of overlay */}
@@ -319,38 +325,42 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </View>
-      {/* Tips header only */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 18, marginBottom: 2, gap: 10, paddingHorizontal: 16 }}>
-        <Text style={{ fontSize: 14, fontFamily: 'UberMove-Bold', color: colors.text }}>Tips</Text>
-      </View>
-      
+
       {/* Suggestions List below pinned search bar */}
-      {liveLoading ? (
-        <Text style={{ color: colors.text, opacity: 0.7, fontSize: 15, textAlign: 'center', marginTop: 40 }}>Loading live tips...</Text>
+      {liveLoading || (search && !suggestions.length) ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: "-60%", left: 0, right: 0, bottom: 0 }}>
+          <Text style={{ color: colors.text, opacity: 0.7, fontSize: 15, textAlign: 'center', marginBottom: 10 }}>Searching tips...</Text>
+          <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 10, opacity: 0.7 }} />
+        </View>
       ) : liveError ? (
         <Text style={{ color: '#f87171', fontSize: 15, textAlign: 'center', marginTop: 40 }}>{liveError}</Text>
       ) : suggestions.length === 0 && search ? (
         <Text style={{ color: colors.text, opacity: 0.7, fontSize: 15, textAlign: 'center', marginTop: 40 }}>No tips found.</Text>
       ) : (
         <ScrollView keyboardShouldPersistTaps="handled" style={{ flex: 1, marginTop: 12, paddingHorizontal: 16 }}>
-          {suggestions.map((group, idx) => (
-            <View key={group.label} style={{ marginBottom: 18 }}>
-              <Text style={{ fontSize: 13, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 6 }}>
-                {group.label}
-                {group.sector && (
-                  <Text style={{ fontSize: 13, fontFamily: 'UberMove-Medium', color: colors.text, opacity: 0.7 }}>  •  {group.sector}</Text>
-                )}
-              </Text>
-              {group.data.map((item: any, i: number) => {
+          {/* Tips header only */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 18, marginBottom: 2, gap: 10, paddingHorizontal: 0 }}>
+            <Text style={{ fontSize: 14, fontFamily: 'UberMove-Bold', color: colors.text }}>Tips</Text>
+          </View>
+          {/* Only show the first 10 tips from all groups combined */}
+          {(() => {
+            let shown = 0;
+            const max = visibleCount;
+            const result: any[] = [];
+            for (let g = 0; g < suggestions.length && shown < max; g++) {
+              const group = suggestions[g];
+              const groupTips = [];
+              for (let i = 0; i < group.data.length && shown < max; i++) {
+                const item = group.data[i];
                 // Always show the tip text only
                 const displayText = item.tip;
                 let timestamp = '';
                 if (item.created_at) {
                   timestamp = timeAgo ? timeAgo(item.created_at) : item.created_at;
                 }
-                return (
+                groupTips.push(
                   <TouchableOpacity
-                    key={item?.id || idx}
+                    key={item?.id || `${g}-${i}`}
                     activeOpacity={0.92}
                     onPress={() => {
                       navigation.navigate('TipCard', {
@@ -401,9 +411,33 @@ export default function SearchSuggestionsScreen({ navigation, route }: any) {
                     </View>
                   </TouchableOpacity>
                 );
-              })}
-            </View>
-          ))}
+                shown++;
+              }
+              if (groupTips.length > 0) {
+                result.push(
+                  <View key={group.label} style={{ marginBottom: 18 }}>
+                    <Text style={{ fontSize: 13, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 6 }}>
+                      {group.label}
+                      {group.sector && (
+                        <Text style={{ fontSize: 13, fontFamily: 'UberMove-Medium', color: colors.text, opacity: 0.7 }}>  •  {group.sector}</Text>
+                      )}
+                    </Text>
+                    {groupTips}
+                  </View>
+                );
+              }
+            }
+            return result;
+          })()}
+          {/* Lazy loading trigger: show loader or button if more tips available */}
+          {visibleCount < suggestions.reduce((acc, group) => acc + group.data.length, 0) && (
+            <TouchableOpacity
+              style={{ alignItems: 'center', justifyContent: 'center', padding: 12, marginTop: 10 }}
+              onPress={() => setVisibleCount(c => c + 10)}
+            >
+              <Text style={{ color: colors.primary, fontFamily: 'UberMove-Bold', fontSize: 15 }}>Load more results</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       )}
       

@@ -115,22 +115,27 @@ import { mockNewsData, timeAgo } from './mockNewsData';
 import { useTipsData } from '../lib/useDataStore';
 import SearchIcon from "../assets/icons/search.svg";
 import { Ionicons } from '@expo/vector-icons';
-import { Button } from '~/components/ui/button';
 import RBSheet from 'react-native-raw-bottom-sheet';
-import LottieView from 'lottie-react-native';
 
 // import TipCard from './TipCard';
 // import { Modal } from 'react-native';
 
 export default function SearchScreen() {
+
+
+  console.log('[SearchScreen] Rendering SearchScreen');
+
+
   // Wallet and unlock state
-  const [wallet, setWallet] = useState<number>(25);
+  const [wallet, setWallet] = useState<any | null>(null);
   const [unlockingTip, setUnlockingTip] = useState<any | null>(null);
   const [unlockedTips, setUnlockedTips] = useState<string[]>([]);
   const unlockSheetRef = useRef<any>(null);
   const [loadingUnlock, setLoadingUnlock] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
+
+  console.log('020202002[SearchScreen] Rendering SearchScreen');
 
   // Always reload user data from Supabase when screen is focused
   useFocusEffect(
@@ -240,9 +245,6 @@ export default function SearchScreen() {
   const [selectedRisk, setSelectedRisk] = useState<string[]>([]);
   // For expected return, store the label of the selected range
   const [selectedExpectedReturn, setSelectedExpectedReturn] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  // TipCard modal state
-  const [modalTip, setModalTip] = useState<any | null>(null);
 
   // Demo/Live toggle state
   const [dataMode, setDataMode] = useState<'demo' | 'live'>('live');
@@ -300,6 +302,15 @@ export default function SearchScreen() {
     });
   }, [tipsData, selectedAsset, selectedSector, selectedAnalyst, selectedSentiment, selectedRisk, selectedExpectedReturn]);
 
+  // --- Lazy loading state ---
+  const [visibleCount, setVisibleCount] = useState(25);
+  const visibleTips = filteredTips.slice(0, visibleCount);
+
+  // Reset visibleCount when filters change
+  React.useEffect(() => {
+    setVisibleCount(25);
+  }, [filteredTips.length]);
+
   // --- Handlers ---
   // Helper: check if tip is paywalled (less than 24h old)
   function isPaywalled(tip: any) {
@@ -320,7 +331,7 @@ export default function SearchScreen() {
   };
 
   const renderFilterCarousel = (label: string, data: any[], selected: string[], onSelect: (v: string) => void, renderItem: (item: any, selected: boolean) => React.ReactNode) => (
-    <View style={{ marginVertical: 18, marginHorizontal:5}}>
+    <View style={{ marginTop: 18, marginBottom: -15, marginHorizontal:5}}>
       
       
       <ScrollView  showsVerticalScrollIndicator={false} contentContainerStyle={{flexWrap: 'wrap', flexDirection: 'row',  gap: 8 }}>
@@ -373,12 +384,12 @@ export default function SearchScreen() {
       ))}
       {renderFilterCarousel('Sentiment', sentiments, selectedSentiment, (v) => setSelectedSentiment(selectedSentiment.includes(v) ? selectedSentiment.filter(x => x !== v) : [...selectedSentiment, v]), (item, selected) => {
         // Map sentiment to Ionicons filled icon
-        let iconName = 'flash';
+        let iconName: any = 'flash';
         switch (item.name.toLowerCase()) {
           case 'bullish': iconName = 'trending-up'; break;
           case 'bearish': iconName = 'trending-down'; break;
           case 'neutral': iconName = 'remove'; break;
-          case 'volatile': iconName = 'swap-horizontal'; break;
+          case 'volatile': iconName = 'swap-horizontal' ; break;
           case 'momentum': iconName = 'speedometer-outline'; break;
           case 'growth': iconName = 'leaf-outline'; break;
           case 'value': iconName = 'cash-outline'; break;
@@ -435,7 +446,7 @@ export default function SearchScreen() {
   
 
   
-  flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop:  0, marginBottom: 10, }}>
+  flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop:  10, marginBottom: 10, }}>
           {selectedAsset.map((val) => (
             <TouchableOpacity key={val} onPress={() => setSelectedAsset(selectedAsset.filter(x => x !== val))} style={{ marginBottom:3, backgroundColor: isDarkColorScheme ? '#EEE' : '#222', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, marginRight: 4 }}><Text style={{ color:isDarkColorScheme ? "#000" : '#fff', fontSize: 12 }}>{val} ✕</Text></TouchableOpacity>
           ))}
@@ -459,7 +470,7 @@ export default function SearchScreen() {
 
 
       {/* Tips header and info button */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5, gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 }}>
         <Text style={{ fontSize: 14, fontFamily: 'UberMove-Bold', color: colors.text }}>Tips</Text>
         <TouchableOpacity
           onPress={() => ResultSheetRef.current?.open?.()}
@@ -557,7 +568,7 @@ export default function SearchScreen() {
         <Text style={{ color: colors.text, opacity: 0.7, fontSize: 13 }}>No results found.</Text>
       ) : (
         <>
-          {filteredTips.map((tip, idx) => (
+          {visibleTips.map((tip, idx) => (
             <TouchableOpacity
               key={tip.id || idx}
               activeOpacity={0.92}
@@ -573,13 +584,6 @@ export default function SearchScreen() {
                  });
 
 
-                // // Open the unlock sheet instantly, then set the tip and let the sheet UI decide what to show
-                // if (isPaywalled(tip) && !isUnlocked(tip)) {
-                //   setUnlockingTip(tip);
-                //   unlockSheetRef.current?.open?.();
-                // } else {
-                //   navigation.navigate('TipCard', { tip, userData });
-                // }
 
 
 
@@ -612,134 +616,24 @@ export default function SearchScreen() {
                 {/* Show lollipop icon at right bottom if paywalled and not unlocked */}
                 {isPaywalled(tip) && !isUnlocked(tip) && userData && (
                   <View style={{ position: 'absolute', right: 10, bottom: 10 }}>
-                    {isDarkColorScheme ? <LollipopIconWhite color={'#fff'} width={28} height={28} /> : <LollipopIcon color={colors.primary} width={28} height={28} />}
+                    {isDarkColorScheme ? <LollipopIconWhite color={'#fff'} width={20} height={20} /> : <LollipopIcon color={colors.primary} width={20} height={20} />}
                   </View>
                 )}
               </View>
             </TouchableOpacity>
           ))}
-      {/* Unlock Tip RBSheet */}
-      {/* <RBSheet
-        ref={unlockSheetRef}
-        height={height * 0.34}
-        openDuration={250}
-        customStyles={{
-          container: {
-            backgroundColor: isDarkColorScheme ? '#18181b' : '#fff',
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
-            padding: 24,
-          },
-        }}
-        closeOnDragDown
-        closeOnPressMask
-      >
-        <View style={{ width: '100%', alignItems: 'center', marginTop: -10, marginBottom: 18 }}>
-          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: isDarkColorScheme ? '#333' : '#ccc', marginBottom: 2 }} />
-        </View>
-        <View style={{ alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
-          <MaterialIcons name="lock-outline" color={colors.primary} size={38} style={{ marginBottom: 12 }} />
-          <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 10, textAlign: 'center' }}>
-            Unlock this tip using 1 Lollipop?
-          </Text>
-          <Text style={{ fontFamily: 'UberMove-Medium', fontSize: 15, color: colors.text, opacity: 0.85, textAlign: 'center', marginBottom: 18 }}>
-            Wallet Balance: {wallet} Lollipops
-          </Text>
-          <Button 
-            size="lg" 
-            onPress={() => {
-              if (!userId) {
-                navigation.navigate('User');
-                return;
-              }
-              setLoadingUnlock(true);
-              handleUnlockTip();
-            }}
-            style={{ 
-              borderRadius: 7, 
-              paddingHorizontal: 22, 
-              paddingVertical: 12.5, 
-              marginTop: 8, 
-              backgroundColor: colors.primary, 
-              width: '100%' ,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {!isDarkColorScheme ? (
-              <LollipopIconWhite color={'#fff'} width={21} height={21}  />
-            ) : (
-              <LollipopIcon color={colors.primary} width={21} height={21} />
-            )}
-            <Text 
-              style={{ 
-                color: isDarkColorScheme ? '#000' : '#FFF', 
-                fontFamily: 'UberMove-Bold', 
-                fontSize: 17 , marginLeft:15
-              }}
-            >
-              {loadingUnlock ? 'Unlocking...' : 'Unlock'}
-            </Text>
-          </Button>
-   
-          {wallet === 0 && (
-            <Text style={{ color: '#f87171', fontFamily: 'UberMove-Bold', fontSize: 15, marginTop: 18, textAlign: 'center' }}>
-              You’ve run out of Lollipops. Earn more or upgrade your plan.
-            </Text>
-          )}
-        </View>
-      </RBSheet> */}
-          {search.length > 0 && (
+          {/* Lazy loading trigger: show loader or button if more tips available */}
+          {visibleCount < filteredTips.length && (
             <TouchableOpacity
-              onPress={() => aiSheetRef.current?.open?.()}
-              style={{ backgroundColor: colors.primary, borderRadius: 16, paddingVertical: 14, alignItems: 'center', marginTop: 10, marginBottom: 30 }}
-              activeOpacity={0.85}
+              style={{ alignItems: 'center', justifyContent: 'center', padding: 12, marginTop: 10 }}
+              onPress={() => setVisibleCount(c => c + 25)}
             >
-              <Text style={{ color: '#fff', fontFamily: 'UberMove-Bold', fontSize: 16 }}>Ask AI</Text>
+              <Text style={{ color: colors.primary, fontFamily: 'UberMove-Bold', fontSize: 12.5 }}>Load more tips</Text>
             </TouchableOpacity>
           )}
         </>
       )}
-      {/* Ask AI Bottom Sheet */}
-      <RBSheet
-        ref={aiSheetRef}
-        height={height * 0.38}
-        openDuration={250}
-        customStyles={{
-          container: {
-            backgroundColor: isDarkColorScheme ? '#18181b' : '#fff',
-            borderTopLeftRadius: 22,
-            borderTopRightRadius: 22,
-            overflow: 'hidden',
-          },
-        }}
-        closeOnDragDown
-        closeOnPressMask
-      >
-        {/* Closing line indicator */}
-        <View style={{ width: '100%', alignItems: 'center', marginTop: -10, marginBottom: 18 }}>
-          <View style={{ width: 44, height: 5, borderRadius: 3, backgroundColor: isDarkColorScheme ? '#333' : '#ccc', marginBottom: 2 }} />
-        </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginBottom: 10, textAlign: 'center' }}>
-            Ask AI about your search
-          </Text>
-          <Text style={{ fontSize: 15, color: colors.text, opacity: 0.85, textAlign: 'center', marginBottom: 18 }}>
-            Get instant insights, explanations, or answers for your query.
-          </Text>
-          <TextInput
-            style={{ width: '100%', borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 12, fontSize: 15, color: colors.text, backgroundColor: isDarkColorScheme ? '#232323' : '#f3f3f3', marginBottom: 18 }}
-            placeholder="Type your question for AI..."
-            placeholderTextColor={isDarkColorScheme ? '#888' : '#888'}
-            value={search}
-            editable={false}
-          />
-          <Button style={{ borderRadius: 16, paddingHorizontal: 22, paddingVertical: 10, marginTop: 8 }}>
-            <Text style={{ color: isDarkColorScheme ? '#000' : '#fff', fontFamily: 'UberMove-Bold', fontSize: 15 }}>Submit to AI</Text>
-          </Button>
-        </View>
-      </RBSheet>
+ 
         </View>
   )
 
@@ -770,7 +664,7 @@ export default function SearchScreen() {
           activeOpacity={1.0}
           accessibilityLabel="Search"
         >
-          <SearchIcon size={22} fill={colors.text} color={colors.text} />
+          <SearchIcon width={22} height={22} fill={colors.text} />
         </TouchableOpacity>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 2 }}>
        
@@ -793,7 +687,7 @@ export default function SearchScreen() {
             activeOpacity={0.7}
             accessibilityLabel="Notifications"
           >
-            <BellIcon name="bell" fill={colors.text} size={22} color={colors.text} />
+            <BellIcon width={22} height={22} fill={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('User')}
@@ -801,7 +695,7 @@ export default function SearchScreen() {
             activeOpacity={0.7}
             accessibilityLabel="Profile"
           >
-            <FaceIcon name="user" fill={colors.text} size={22} color={colors.text} />
+            <FaceIcon width={22} height={22} fill={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
@@ -810,14 +704,14 @@ export default function SearchScreen() {
 
   // --- Main Render ---
   return (
-    <SafeAreaView  style={{marginBottom:-50, flex: 1, backgroundColor: colors.background}}>
+    <SafeAreaView  style={{marginBottom:-50, flex: 1, backgroundColor: colors.background, }}>
 
 
   {/* <GoLiveBar /> */}
 
     <View  style={{ 
 
-              position: 'absolute', top: height * 0.05, left: 0, right: 0, zIndex: 1000, paddingHorizontal: 12.5, paddingBottom: 12.5, paddingTop:6, backgroundColor: colors.background,
+              position: 'absolute', top: height * 0.05, left: 0, right: 0, zIndex: 1000, paddingHorizontal: 12.5, paddingBottom: 12.5, paddingTop:16, backgroundColor: colors.background,
               borderBottomWidth: 1, borderColor: colors.border,
               
               
@@ -878,7 +772,7 @@ export default function SearchScreen() {
           </View>
         )
         : (
-          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding: 8 }} contentContainerStyle={{ padding: 4, paddingTop: height * 0.1, gap: 10 }}>
+          <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1, padding:4.99}} contentContainerStyle={{ padding: 4, paddingTop: height * 0.1, gap: 10 }}>
             
            
 
@@ -916,8 +810,8 @@ export default function SearchScreen() {
         <ScrollView showsVerticalScrollIndicator={false} style={{ width: '104%', marginLeft:"-2%" }}>
           {/* Accordion for all filter categories */}
           <Accordion type="single" collapsible value={activeFilter || undefined} onValueChange={setActiveFilter}>
-            <AccordionItem style={{paddingVertical: 10 }} value="Asset">
-               <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+            <AccordionItem style={{paddingVertical: 10, justifyContent:"space-between",}} value="Asset">
+               <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10,  height:55  }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Asset</Text>
                   </View>
@@ -936,7 +830,7 @@ export default function SearchScreen() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem style={{paddingVertical: 10 }} value="Sector">
-                <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+                <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10,  height:55  }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Sector</Text>
                   </View>
@@ -955,7 +849,7 @@ export default function SearchScreen() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem style={{paddingVertical: 10 }} value="Sentiment">
-              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10,  height:55  }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Sentiment</Text>
                   </View>
@@ -967,7 +861,7 @@ export default function SearchScreen() {
                     case 'bullish': iconName = 'trending-up'; break;
                     case 'bearish': iconName = 'trending-down'; break;
                     case 'neutral': iconName = 'remove'; break;
-                    case 'volatile': iconName = 'swap-horizontal'; break;
+                    case 'volatile': iconName = 'swap-horizontal' ; break;
                     case 'momentum': iconName = 'speedometer-outline'; break;
                     case 'growth': iconName = 'leaf-outline'; break;
                     case 'value': iconName = 'cash-outline'; break;
@@ -986,7 +880,7 @@ export default function SearchScreen() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem style={{paddingVertical: 10 }} value="Risk">
-             <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+             <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10,  height:55  }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Risk</Text>
                   </View>
@@ -1010,7 +904,7 @@ export default function SearchScreen() {
               </AccordionContent>
             </AccordionItem>
             <AccordionItem style={{paddingVertical: 10 }} value="Return">
-              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10 }}>
+              <AccordionTrigger style={{ paddingHorizontal: 20, paddingVertical: 10,  height:55  }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                     <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 15, color: colors.text, minWidth: 110, textAlign: 'left' }}>Expected Return</Text>
                   </View>
@@ -1031,21 +925,6 @@ export default function SearchScreen() {
       </RBSheet>
 
 
-
-
-
-
-
-
-    
-
-
-
-
-      {/* Immersive search suggestions moved to SearchSuggestions screen */}
-
-
-      {/* Four-Tier Horizontal Scroll Filters and Results */}
       
     
     </SafeAreaView>

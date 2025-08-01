@@ -54,7 +54,6 @@
     "expo-status-bar": "~2.2.3",
     "expo-system-ui": "~5.0.7",
     "expo-updates": "~0.28.17",
-    "lottie-react-native": "^7.2.4",
     "lucide-react-native": "^0.511.0",
     "nativewind": "^4.1.23",
     "react": "19.0.0",
@@ -68,8 +67,7 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-snap-carousel": "^3.9.1",
-    "react-native-svg": "^15.11.2",
-    "react-native-svg-transformer": "^1.5.1",
+    "react-native-svg": "15.11.2",
     "react-native-tab-view": "^4.1.2",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-web": "~0.20.0",
@@ -78,11 +76,13 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "3.3.5",
     "tailwindcss-animate": "^1.0.7",
-    "victory-native": "^41.17.4"
+    "victory-native": "^41.17.4",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@types/react": "~19.0.14",
+    "react-native-svg-transformer": "^1.5.1",
     "typescript": "^5.8.3"
   },
   "private": true

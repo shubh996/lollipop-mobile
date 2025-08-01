@@ -2,7 +2,6 @@ import { registerRootComponent } from 'expo';
 import { ExpoRoot } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { View, Text, Image } from 'react-native';
-import LottieView from 'lottie-react-native';
 
 // Must be exported or Fast Refresh won't update the context
 export function App() {
@@ -17,12 +16,7 @@ export function App() {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff', position: 'relative' }}>
         
-        <LottieView
-          source={require('./assets/lottie/loading.json')}
-          autoPlay
-          loop
-          style={{ width: 270, height: 200, marginBottom: 50 }}
-        />
+        
         {/* Bottom: Made in India & version */}
         <View style={{ position: 'absolute', bottom: 32, left: 0, right: 0, alignItems: 'center' }}>
           <Text style={{ fontSize: 13, color: '#888', fontFamily: 'UberMove-Medium', marginBottom: 2 }}>🇮🇳 Made in India</Text>

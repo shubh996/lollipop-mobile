@@ -398,7 +398,7 @@ useEffect(() => {
         {/* <TouchableOpacity onPress={() => navigation.goBack()} style={{ paddingHorizontal: 10, paddingVertical: 8, marginLeft: 2, marginRight: 2 }}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity> */}
-        <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginLeft: 2, marginTop: 2 , textAlign:"center"}}>Login</Text>
+        <Text style={{ fontSize: 18, fontFamily: 'UberMove-Bold', color: colors.text, marginLeft: 2, marginTop: 32 , textAlign:"center"}}>Login</Text>
       {/* <TouchableOpacity onPress={refreshLiveTips} style={{ paddingHorizontal: 10, paddingVertical: 8, marginLeft: 2, marginRight: 2 }}>
             <Ionicons name="refresh" size={22} color={colors.text} />
         </TouchableOpacity> */}
@@ -407,7 +407,7 @@ useEffect(() => {
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
-            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 15, marginBottom: 12, color: colors.text }}
+            style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 15, marginVertical: 12, color: colors.text }}
             placeholderTextColor={colors.border}
             autoCapitalize="none"
             keyboardType="email-address"
@@ -456,7 +456,7 @@ useEffect(() => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, marginVertical:20 }}>
       {/* Profile Section */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 2, paddingBottom: 12 }}>
         <View style={{ flex: 1 }}>

@@ -604,7 +604,7 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
 
   if (!tip) return null;
   return (
-    <SafeAreaView style={{marginBottom:0, marginTop: Platform.OS === 'ios' ? -40 : 0, flex: 1, minHeight: height, width: width, paddingBottom: 0, overflow: 'hidden' }}>
+    <SafeAreaView style={{marginBottom:0, marginTop: Platform.OS === 'ios' ? -30 : 0, flex: 1, minHeight: height, width: width, paddingBottom: 0, overflow: 'hidden' }}>
       
       {/* Modal indicator for iOS */}
       {Platform.OS === 'ios' && (
@@ -630,12 +630,13 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
       </Text>
      
       {/* 2. Tip Card Preview */}
-    <View style={{
+    <View 
+    style={{
       width: '100%',
       padding: 16,
       backgroundColor: isDarkColorScheme ? '#333' : '#f0f0f0',
       borderRadius: 12,
-      marginVertical: 24,
+      marginVertical: 14,
       borderWidth: 1,
       borderColor: colors.border,
       shadowColor: isDarkColorScheme ? '#000' : '#aaa',
@@ -644,13 +645,29 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
       shadowRadius: 4,
       elevation: 2,
     }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent:"center", marginBottom: 8 }}>
+      <TouchableOpacity 
+      
+
+
+              onPress={() => navigation.navigate('Profile', { name: tip?.name, avatar: tip?.avatar })}
+
+      
+      
+      
+      style={{ gap:5,
+        
+         alignItems: 'center', justifyContent:"center", marginBottom: 8 }}>
+
+
+<View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
+
         <Image
           source={{ uri: tip?.avatar }}
-          style={{ width: 32, height: 32, borderRadius: 16, marginRight: 10, backgroundColor: isDarkColorScheme ? '#222' : '#e5e5e5' }}
+          style={{ width: 25, height: 25, borderRadius: 16, marginRight: 10, backgroundColor: isDarkColorScheme ? '#222' : '#e5e5e5' }}
         />
         <Text style={{ fontFamily: 'UberMove-Bold', fontSize: 14, color: colors.text }}>{tip?.name}</Text>
       </View>
+
 
             <View style={{ justifyContent:"center", flexDirection: 'row', marginTop: 5, gap: 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
@@ -664,6 +681,13 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
           <Text style={{ fontSize: 12, color: isDarkColorScheme ? '#fff' : colors.text }}>{tip?.successRate || '52%'} Success Rate</Text>
         </View>
       </View>
+
+
+      
+      
+      </TouchableOpacity>
+
+
 
       <View style={{height: 1, backgroundColor: colors.border, marginTop: 20}}></View>
       
@@ -747,42 +771,49 @@ tip &&console.log('[TipCard] inlcuding:', userData?.unlockedTips);
     
     
     {/* 4. CTA */}
-    <View style={{ width: '100%', alignItems: 'center', marginBottom: 5 }}>
+    <View style={{ width: '100%', alignItems: 'center', marginBottom: 15 }}>
       <Button size="lg" style={{ width: '100%', backgroundColor: colors.primary }} 
       
       onPress={async () => {
-                if (credits <= 0) {
-                  Alert.alert('Insufficient credits', 'You have no credits left to unlock tips.');
-                  return;
-                }
-                setLoadingUnlock(true);
-                try {
-                  // Get current user
-                  const { data: { session } } = await import('~/lib/supabase').then(m => m.supabase.auth.getSession());
-                  const userId = session?.user?.id;
-                  if (!userId || !tip?.id) throw new Error('User or tip missing');
-                  // Update unlockedTips and credits in Supabase
-                  const newUnlockedTips = [...(userData?.unlockedTips || []), tip.id];
-                  const newCredits = credits - 1;
-                  const { error } = await import('~/lib/supabase').then(m => m.supabase
-                    .from('users')
-                    .update({ unlockedTips: newUnlockedTips, credits: newCredits })
-                    .eq('id', userId));
-                  if (error) throw error;
-                  // Sync with parent (pass both unlockedTips and credits)
-                  if (typeof onUnlockedTipsUpdate === 'function') {
-                    onUnlockedTipsUpdate(newUnlockedTips, newCredits);
-                  }
-                  userData.unlockedTips = newUnlockedTips;
-                  userData.credits = newCredits;
-                  setCredits(newCredits);
-                } catch (err: any) {
-                  Alert.alert('Error', err.message || 'Failed to unlock tip');
-                  console.log('[Supabase] Unlock error:', err.message);
-                } finally {
-                  setLoadingUnlock(false);
-                }
-              }}
+       
+        // If no userId, navigate to login page
+        const { data: { session } } = await import('~/lib/supabase').then(m => m.supabase.auth.getSession());
+        const userId = session?.user?.id;
+        if (!userId) {
+          if (navigation && typeof navigation.navigate === 'function') {
+            navigation.navigate('User');
+          }
+          return;
+        }
+        else if (!userData?.credits && !credits) {
+          Alert.alert('Insufficient credits', 'You have no credits left to unlock tips.');
+          return;
+        }
+        setLoadingUnlock(true);
+        try {
+          if (!tip?.id) throw new Error('Tip missing');
+          // Update unlockedTips and credits in Supabase
+          const newUnlockedTips = [...(userData?.unlockedTips || []), tip.id];
+          const newCredits = credits - 1;
+          const { error } = await import('~/lib/supabase').then(m => m.supabase
+            .from('users')
+            .update({ unlockedTips: newUnlockedTips, credits: newCredits })
+            .eq('id', userId));
+          if (error) throw error;
+          // Sync with parent (pass both unlockedTips and credits)
+          if (typeof onUnlockedTipsUpdate === 'function') {
+            onUnlockedTipsUpdate(newUnlockedTips, newCredits);
+          }
+          userData.unlockedTips = newUnlockedTips;
+          userData.credits = newCredits;
+          setCredits(newCredits);
+        } catch (err: any) {
+          Alert.alert('Error', err.message || 'Failed to unlock tip');
+          console.log('[Supabase] Unlock error:', err.message);
+        } finally {
+          setLoadingUnlock(false);
+        }
+      }}
 
       >
         <Text style={{ color: isDarkColorScheme ? '#000' : '#fff', fontFamily: 'UberMove-Bold', fontSize: 16 }}>{loadingUnlock ? 'Unlocking...' : 'Unlock Now'}</Text>

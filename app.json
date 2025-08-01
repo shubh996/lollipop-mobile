@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lollipop",
     "slug": "lollipop-mobile",
-    "version": "1.0.3",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/appIcon.png",
     "scheme": "myapp",
@@ -47,9 +47,7 @@
         "projectId": "3ca269c4-eb63-4130-85fc-90dcc7403c93"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.6",
     "updates": {
       "url": "https://u.expo.dev/3ca269c4-eb63-4130-85fc-90dcc7403c93"
     }

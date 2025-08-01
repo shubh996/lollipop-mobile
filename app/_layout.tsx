@@ -124,6 +124,7 @@ function SearchStack() {
     <Stack.Navigator initialRouteName="SearchSuggestionsScreen" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="SearchSuggestionsScreen" component={SearchSuggestionsScreen} initialParams={{ search: '' }} />
       <Stack.Screen name="TipCard" component={TipCard} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={Platform.OS === 'ios' ? { presentation: 'modal' } : {}} initialParams={{ name: '', avatar: '', theme: isDarkColorScheme ? 'dark' : 'light' }} />
     </Stack.Navigator>
   );
 }
@@ -150,7 +151,7 @@ export default function RootLayout() {
           const routeName = getFocusedRouteNameFromRoute(currentRoute);
           
           // Modal screens that should hide the tab bar
-          const modalScreens = ['TipCard',   'Profile', 'TipListScreen'];
+          const modalScreens = ['TipCard',   'Profile', 'TipListScreen', 'User', 'SearchSuggestionsScreen'];
           const isModalActive = modalScreens.includes(routeName || '');
 
           return {
@@ -191,6 +192,7 @@ export default function RootLayout() {
       >
         <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: 'Tips' }} />
         <Tab.Screen name="Search" component={SearchStack} options={{ tabBarLabel: 'Search' }} />
+        
         <Tab.Screen name="Bell" component={NotificationScreen} options={{ tabBarLabel: 'Alerts' }} />
         <Tab.Screen name="Settings" component={ProfileStack} options={{ tabBarLabel: 'Profile' }} />
       </Tab.Navigator>
